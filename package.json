@@ -9,7 +9,11 @@
   "type": "module",
   "exports": {},
   "scripts": {
-    "quick:test": "node --enable-source-maps --import=ts-node-maintained/register/esm bin/test.ts"
+    "lint": "eslint . --ext=.ts",
+    "pretest": "npm run lint",
+    "quick:test": "node --enable-source-maps --import=ts-node-maintained/register/esm bin/test.ts",
+    "test": "c8 npm run quick:test",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@poppinss/utils": "^6.8.3"
@@ -23,6 +27,7 @@
     "@japa/runner": "^3.1.4",
     "@swc/core": "^1.7.40",
     "@types/node": "^22.8.1",
+    "c8": "^10.1.2",
     "eslint": "^8.57.1",
     "prettier": "^3.3.3",
     "release-it": "^17.10.0",
