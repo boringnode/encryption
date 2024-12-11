@@ -10,9 +10,9 @@
   "exports": {},
   "scripts": {
     "lint": "eslint . --ext=.ts",
-    "pretest": "npm run lint",
-    "quick:test": "node --enable-source-maps --import=ts-node-maintained/register/esm bin/test.ts",
-    "test": "c8 npm run quick:test",
+    "pretest": "yarn lint",
+    "quick:test": "yarn node --enable-source-maps --import=ts-node-maintained/register/esm bin/test.ts",
+    "test": "c8 yarn quick:test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -46,5 +46,6 @@
   "eslintConfig": {
     "extends": "@adonisjs/eslint-config/package"
   },
-  "prettier": "@adonisjs/prettier-config"
+  "prettier": "@adonisjs/prettier-config",
+  "packageManager": "yarn@4.5.3+sha512.3003a14012e2987072d244c720506549c1aab73ee728208f1b2580a9fd67b92d61ba6b08fe93f6dce68fd771e3af1e59a0afa28dd242dd0940d73b95fedd4e90"
 }
