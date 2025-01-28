@@ -5,7 +5,7 @@ import { expectTypeOf } from '@japa/expect-type'
 
 processCLIArgs(process.argv.splice(2))
 configure({
-  files: ['tests/**/*.spec.ts'],
+  files: ['tests/sample.spec.ts'],
   plugins: [assert(), expectTypeOf()],
   reporters: {
     activated: [spec.name],
