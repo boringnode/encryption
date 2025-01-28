@@ -2,8 +2,8 @@ import { configure, processCLIArgs, run } from '@japa/runner'
 import { assert } from '@japa/assert'
 import { expectTypeOf } from '@japa/expect-type'
 
-process.on('uncaughtException', console.error)
-process.on('unhandledRejection', console.error)
+process.on('uncaughtException', () => console.log('Received uncaught exception'))
+process.on('unhandledRejection', () => console.log('Received uncaught error'))
 
 processCLIArgs(process.argv.splice(2))
 configure({
