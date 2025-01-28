@@ -11,7 +11,7 @@
   "scripts": {
     "lint": "eslint . --ext=.ts",
     "pretest": "yarn lint",
-    "quick:test": "yarn node --enable-source-maps --import=ts-node-maintained/register/esm bin/test.ts",
+    "quick:test": "yarn node --enable-source-maps --import=ts-node-maintained/register/esm bin/test.ts --force-exit",
     "test": "c8 yarn quick:test",
     "typecheck": "tsc --noEmit"
   },
