@@ -2,6 +2,9 @@ import { configure, processCLIArgs, run } from '@japa/runner'
 import { assert } from '@japa/assert'
 import { expectTypeOf } from '@japa/expect-type'
 
+process.on('uncaughtException', console.error)
+process.on('unhandledRejection', console.error)
+
 processCLIArgs(process.argv.splice(2))
 configure({
   files: ['tests/**/*.spec.ts'],
