@@ -48,7 +48,7 @@ export class AES256GCM extends BaseDriver implements EncryptionDriverContract {
     /**
      * Creating chiper
      */
-    const cipher = createCipheriv('aes-256-gcm', this.cryptoKey, iv)
+    const cipher = createCipheriv('aes-256-gcm', this.getFirstKey().key, iv)
 
     if (purpose) {
       cipher.setAAD(Buffer.from(purpose), { plaintextLength: Buffer.byteLength(purpose) })
@@ -76,7 +76,7 @@ export class AES256GCM extends BaseDriver implements EncryptionDriverContract {
     /**
      * Returns the id + result + nounce + hmac
      */
-    const hmac = new Hmac(this.cryptoKey).generate(result)
+    const hmac = new Hmac(this.getFirstKey().key).generate(result)
     return this.computeReturns([this.#config.id, result, nounce, hmac])
   }
 
@@ -132,38 +132,40 @@ export class AES256GCM extends BaseDriver implements EncryptionDriverContract {
      * Make sure the hash is correct, it means the first 2 parts of the
      * string are not tampered.
      */
-    const isValidHmac = new Hmac(this.cryptoKey).compare(
-      `${encryptedEncoded}${this.separator}${ivEncoded}`,
-      hash
-    )
+    for (const { key } of this.cryptoKeys) {
+      const isValidHmac = new Hmac(key).compare(
+        `${encryptedEncoded}${this.separator}${ivEncoded}`,
+        hash
+      )
 
-    if (!isValidHmac) {
-      return null
-    }
-
-    /**
-     * The Decipher can raise exceptions with malformed input, so we wrap it
-     * to avoid leaking sensitive information
-     */
-    try {
-      const decipher = createDecipheriv('aes-256-gcm', this.cryptoKey, iv)
-
-      /**
-       * Set the purpose to decipher
-       */
-      if (purpose) {
-        decipher.setAAD(Buffer.from(purpose), { plaintextLength: Buffer.byteLength(purpose) })
+      if (!isValidHmac) {
+        continue
       }
 
       /**
-       * Set the nounce
+       * The Decipher can raise exceptions with malformed input, so we wrap it
+       * to avoid leaking sensitive information
        */
-      decipher.setAuthTag(nounce)
+      try {
+        const decipher = createDecipheriv('aes-256-gcm', key, iv)
 
-      const decrypted = decipher.update(encrypted) + decipher.final('utf8')
-      return new MessageBuilder().verify(decrypted)
-    } catch {
-      return null
+        /**
+         * Set the purpose to decipher
+         */
+        if (purpose) {
+          decipher.setAAD(Buffer.from(purpose), { plaintextLength: Buffer.byteLength(purpose) })
+        }
+
+        /**
+         * Set the nounce
+         */
+        decipher.setAuthTag(nounce)
+
+        const decrypted = decipher.update(encrypted) + decipher.final('utf8')
+        return new MessageBuilder().verify(decrypted)
+      } catch {}
     }
+
+    return null
   }
 }

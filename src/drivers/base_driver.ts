@@ -15,7 +15,7 @@ export abstract class BaseDriver {
    * The key for signing and encrypting values. It is derived
    * from the user provided secret.
    */
-  cryptoKey: Buffer
+  cryptoKeys = new Set<{ key: Buffer; verifier: MessageVerifier }>()
 
   /**
    * Use `dot` as a separator for joining encrypted value, iv and the
@@ -23,23 +23,24 @@ export abstract class BaseDriver {
    */
   separator = '.'
 
-  /**
-   * Reference to the instance of message verifier for signing
-   * and verifying values.
-   */
-  verifier: MessageVerifier
-
   protected constructor(config: BaseConfig) {
-    this.#validateSecret(config.key)
-    this.cryptoKey = createHash('sha256').update(config.key).digest()
-    this.verifier = new MessageVerifier(config.key)
+    if (!config.keys || !Array.isArray(config.keys)) {
+      throw new errors.E_MISSING_ENCRYPTER_KEY()
+    }
+
+    for (const key of config.keys) {
+      this.#validateSecret(key)
+
+      const cryptoKey = createHash('sha256').update(key).digest()
+      this.cryptoKeys.add({ key: cryptoKey, verifier: new MessageVerifier(key) })
+    }
   }
 
   /**
    * Validates the app secret
    */
-  #validateSecret(secret?: string) {
-    if (typeof secret !== 'string') {
+  #validateSecret(secret: string) {
+    if (!secret) {
       throw new errors.E_MISSING_ENCRYPTER_KEY()
     }
 
@@ -52,11 +53,9 @@ export abstract class BaseDriver {
     return values.join(this.separator)
   }
 
-  /**
-   * Returns the message verifier instance
-   */
-  getMessageVerifier() {
-    return this.verifier
+  getFirstKey() {
+    const [firstKey] = this.cryptoKeys
+    return firstKey
   }
 
   /**

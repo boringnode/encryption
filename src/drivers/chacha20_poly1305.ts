@@ -48,7 +48,9 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
     /**
      * Creating cipher
      */
-    const cipher = createCipheriv('chacha20-poly1305', this.cryptoKey, iv, { authTagLength: 16 })
+    const cipher = createCipheriv('chacha20-poly1305', this.getFirstKey().key, iv, {
+      authTagLength: 16,
+    })
 
     if (purpose) {
       cipher.setAAD(Buffer.from(purpose), { plaintextLength: Buffer.byteLength(purpose) })
@@ -76,7 +78,7 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
     /**
      * Returns the id + result + nounce + hmac
      */
-    const hmac = new Hmac(this.cryptoKey).generate(result)
+    const hmac = new Hmac(this.getFirstKey().key).generate(result)
     return this.computeReturns([this.#config.id, result, nounce, hmac])
   }
 
@@ -90,10 +92,10 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
 
     /**
      * Make sure the encrypted value is in correct format. ie
-     * [id].[encrypted value].[iv].[nounce].[hash]
+     * [id].[encrypted value].[iv].[nounce].[hmac]
      */
-    const [id, encryptedEncoded, ivEncoded, nounceEncoded, hash] = value.split(this.separator)
-    if (!id || !encryptedEncoded || !ivEncoded || !nounceEncoded || !hash) {
+    const [id, encryptedEncoded, ivEncoded, nounceEncoded, hmac] = value.split(this.separator)
+    if (!id || !encryptedEncoded || !ivEncoded || !nounceEncoded || !hmac) {
       return null
     }
 
@@ -132,39 +134,42 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
      * Make sure the hash is correct, it means the first 2 parts of the
      * string are not tampered.
      */
-    const isValidHmac = new Hmac(this.cryptoKey).compare(
-      `${encryptedEncoded}${this.separator}${ivEncoded}`,
-      hash
-    )
-    if (!isValidHmac) {
-      return null
-    }
+    for (const { key } of this.cryptoKeys) {
+      const isValidHmac = new Hmac(key).compare(
+        `${encryptedEncoded}${this.separator}${ivEncoded}`,
+        hmac
+      )
 
-    /**
-     * The Decipher can raise exceptions with malformed input, so we wrap it
-     * to avoid leaking sensitive information
-     */
-    try {
-      const decipher = createDecipheriv('chacha20-poly1305', this.cryptoKey, iv, {
-        authTagLength: 16,
-      })
-
-      /**
-       * Set the purpose to decipher
-       */
-      if (purpose) {
-        decipher.setAAD(Buffer.from(purpose), { plaintextLength: Buffer.byteLength(purpose) })
+      if (!isValidHmac) {
+        continue
       }
 
       /**
-       * Set the nounce
+       * The Decipher can raise exceptions with malformed input, so we wrap it
+       * to avoid leaking sensitive information
        */
-      decipher.setAuthTag(nounce)
+      try {
+        const decipher = createDecipheriv('chacha20-poly1305', key, iv, {
+          authTagLength: 16,
+        })
 
-      const decrypted = decipher.update(encrypted) + decipher.final('utf8')
-      return new MessageBuilder().verify(decrypted)
-    } catch {
-      return null
+        /**
+         * Set the purpose to decipher
+         */
+        if (purpose) {
+          decipher.setAAD(Buffer.from(purpose), { plaintextLength: Buffer.byteLength(purpose) })
+        }
+
+        /**
+         * Set the nounce
+         */
+        decipher.setAuthTag(nounce)
+
+        const decrypted = decipher.update(encrypted) + decipher.final('utf8')
+        return new MessageBuilder().verify(decrypted)
+      } catch {}
     }
+
+    return null
   }
 }

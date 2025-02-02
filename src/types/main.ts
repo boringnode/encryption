@@ -5,17 +5,10 @@
  * @copyright Boring Node
  */
 
-import type { MessageVerifier } from '../message_verifier.js'
-
 /**
  * The contract Encryption drivers should adhere to
  */
 export interface EncryptionDriverContract {
-  /**
-   * Returns the message verifier instance for a given driver
-   */
-  getMessageVerifier(): MessageVerifier
-
   /**
    * Encrypt a given piece of value using the app secret. A wide range of
    * data types are supported.
@@ -46,7 +39,7 @@ export interface EncryptionDriverContract {
 export type ManagerDriverFactory = () => EncryptionDriverContract
 
 export interface BaseConfig {
-  key: string
+  keys: string[]
 }
 
 export interface LegacyConfig extends BaseConfig {}

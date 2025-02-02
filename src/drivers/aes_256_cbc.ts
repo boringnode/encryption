@@ -48,7 +48,7 @@ export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
     /**
      * Creating chiper
      */
-    const cipher = createCipheriv('aes-256-cbc', this.cryptoKey, iv)
+    const cipher = createCipheriv('aes-256-cbc', this.getFirstKey().key, iv)
 
     /**
      * Encoding value to a string so that we can set it on the cipher
@@ -70,7 +70,7 @@ export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
     /**
      * Returns the id + result + hmac
      */
-    const hmac = new Hmac(this.cryptoKey).generate(result)
+    const hmac = new Hmac(this.getFirstKey().key).generate(result)
     return this.computeReturns([this.#config.id, result, hmac])
   }
 
@@ -118,25 +118,27 @@ export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
      * Make sure the hash is correct, it means the first 2 parts of the
      * string are not tampered.
      */
-    const isValidHmac = new Hmac(this.cryptoKey).compare(
-      `${encryptedEncoded}${this.separator}${ivEncoded}`,
-      hash
-    )
+    for (const { key } of this.cryptoKeys) {
+      const isValidHmac = new Hmac(key).compare(
+        `${encryptedEncoded}${this.separator}${ivEncoded}`,
+        hash
+      )
 
-    if (!isValidHmac) {
-      return null
+      if (!isValidHmac) {
+        continue
+      }
+
+      /**
+       * The Decipher can raise exceptions with malformed input, so we wrap it
+       * to avoid leaking sensitive information
+       */
+      try {
+        const decipher = createDecipheriv('aes-256-cbc', key, iv)
+        const decrypted = decipher.update(encrypted) + decipher.final('utf8')
+        return new MessageBuilder().verify(decrypted, purpose)
+      } catch {}
     }
 
-    /**
-     * The Decipher can raise exceptions with malformed input, so we wrap it
-     * to avoid leaking sensitive information
-     */
-    try {
-      const decipher = createDecipheriv('aes-256-cbc', this.cryptoKey, iv)
-      const decrypted = decipher.update(encrypted) + decipher.final('utf8')
-      return new MessageBuilder().verify(decrypted, purpose)
-    } catch {
-      return null
-    }
+    return null
   }
 }
