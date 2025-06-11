@@ -5,6 +5,8 @@
  * @copyright Boring Node
  */
 
+export type CypherText = `${string}.${string}.${string}.${string}`
+
 /**
  * The contract Encryption drivers should adhere to
  */
@@ -23,7 +25,7 @@ export interface EncryptionDriverContract {
    * You can optionally define a purpose for which the value was encrypted and
    * mentioning a different purpose/no purpose during decrypt will fail.
    */
-  encrypt(payload: any, expiresIn?: string | number, purpose?: string): string
+  encrypt(payload: any, expiresIn?: string | number, purpose?: string): CypherText
 
   /**
    * Decrypt value and verify it against a purpose
@@ -33,8 +35,8 @@ export interface EncryptionDriverContract {
 
 /**
  * Factory function to return the driver implementation. The method
- * cannot be async, because the API that calls this method is not
- * async in first place.
+ * cannot be async because the API that calls this method is not
+ * async in the first place.
  */
 export type ManagerDriverFactory = () => EncryptionDriverContract
 

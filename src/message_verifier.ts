@@ -13,7 +13,7 @@ import { Hmac } from './hmac.js'
  * Message verifier is similar to the encryption. However, the actual payload
  * is not encrypted and just base64 encoded. This is helpful when you are
  * not concerned about the confidentiality of the data, but just want to
- * make sure that is not tampered after encoding.
+ * make sure that is not tampered with after encoding.
  */
 export class MessageVerifier {
   /**

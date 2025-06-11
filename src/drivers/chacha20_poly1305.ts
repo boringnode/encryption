@@ -8,9 +8,9 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto'
 import { MessageBuilder } from '@poppinss/utils'
 import { BaseDriver } from './base_driver.js'
-import { Hmac } from '../hmac.js'
 import * as errors from '../exceptions.js'
-import type { ChaCha20Poly1305Config, EncryptionDriverContract } from '../types/main.js'
+import type { ChaCha20Poly1305Config, CypherText, EncryptionDriverContract } from '../types/main.js'
+import { base64UrlDecode, base64UrlEncode } from '../base64.js'
 
 export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverContract {
   #config: ChaCha20Poly1305Config
@@ -39,7 +39,7 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
    * You can optionally define a purpose for which the value was encrypted and
    * mentioning a different purpose/no purpose during decrypt will fail.
    */
-  encrypt(payload: any, expiresIn?: string | number, purpose?: string): string {
+  encrypt(payload: any, expiresIn?: string | number, purpose?: string): CypherText {
     /**
      * Using a random string as the iv for generating unpredictable values
      */
@@ -59,27 +59,21 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
     /**
      * Encoding value to a string so that we can set it on the cipher
      */
-    const encodedValue = new MessageBuilder().build(payload, expiresIn)
+    const plainText = new MessageBuilder().build(payload, expiresIn)
 
     /**
      * Set final to the cipher instance and encrypt it
      */
-    const encrypted = Buffer.concat([cipher.update(encodedValue, 'utf-8'), cipher.final()])
+    const cipherText = Buffer.concat([cipher.update(plainText), cipher.final()])
 
-    /**
-     * Concatenate `encrypted value` and `iv` by urlEncoding them. The concatenation is required
-     * to generate the HMAC, so that HMAC checks for integrity of both the `encrypted value`
-     * and the `iv`.
-     */
-    const result = `${encrypted.toString('hex')}${this.separator}${iv.toString('hex')}`
+    const tag = cipher.getAuthTag()
 
-    const nounce = cipher.getAuthTag().toString('hex')
-
-    /**
-     * Returns the id + result + nounce + hmac
-     */
-    const hmac = new Hmac(this.getFirstKey().key).generate(result)
-    return this.computeReturns([this.#config.id, result, nounce, hmac])
+    return this.computeReturns([
+      this.#config.id,
+      base64UrlEncode(cipherText),
+      base64UrlEncode(iv),
+      base64UrlEncode(tag),
+    ])
   }
 
   /**
@@ -91,11 +85,11 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
     }
 
     /**
-     * Make sure the encrypted value is in correct format. ie
-     * [id].[encrypted value].[iv].[nounce].[hmac]
+     * Make sure the encrypted value is in the correct format.
+     * i.e.: [id].[encrypted value].[iv].[tag]
      */
-    const [id, encryptedEncoded, ivEncoded, nounceEncoded, hmac] = value.split(this.separator)
-    if (!id || !encryptedEncoded || !ivEncoded || !nounceEncoded || !hmac) {
+    const [id, cipherEncoded, ivEncoded, tagEncoded] = value.split(this.separator)
+    if (!id || !cipherEncoded || !ivEncoded || !tagEncoded) {
       return null
     }
 
@@ -109,41 +103,28 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
     /**
      * Make sure we are able to decode the encrypted value
      */
-    const encrypted = Buffer.from(encryptedEncoded, 'hex')
-    if (!encrypted) {
+    const cipherText = base64UrlDecode(cipherEncoded)
+    if (!cipherText) {
       return null
     }
 
     /**
      * Make sure we are able to decode the iv
      */
-    const iv = Buffer.from(ivEncoded, 'hex')
+    const iv = base64UrlDecode(ivEncoded)
     if (!iv) {
       return null
     }
 
     /**
-     * Make sure we are able to decode the nounce
+     * Make sure we are able to decode the tag
      */
-    const nounce = Buffer.from(nounceEncoded, 'hex')
-    if (!nounce) {
+    const tag = base64UrlDecode(tagEncoded)
+    if (!tag) {
       return null
     }
 
-    /**
-     * Make sure the hash is correct, it means the first 2 parts of the
-     * string are not tampered.
-     */
     for (const { key } of this.cryptoKeys) {
-      const isValidHmac = new Hmac(key).compare(
-        `${encryptedEncoded}${this.separator}${ivEncoded}`,
-        hmac
-      )
-
-      if (!isValidHmac) {
-        continue
-      }
-
       /**
        * The Decipher can raise exceptions with malformed input, so we wrap it
        * to avoid leaking sensitive information
@@ -153,20 +134,14 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
           authTagLength: 16,
         })
 
-        /**
-         * Set the purpose to decipher
-         */
         if (purpose) {
           decipher.setAAD(Buffer.from(purpose), { plaintextLength: Buffer.byteLength(purpose) })
         }
 
-        /**
-         * Set the nounce
-         */
-        decipher.setAuthTag(nounce)
+        decipher.setAuthTag(tag)
 
-        const decrypted = decipher.update(encrypted) + decipher.final('utf8')
-        return new MessageBuilder().verify(decrypted)
+        const plain = Buffer.concat([decipher.update(cipherText), decipher.final()])
+        return new MessageBuilder().verify(plain)
       } catch {}
     }
 

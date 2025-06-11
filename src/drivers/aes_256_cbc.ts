@@ -5,12 +5,13 @@
  * @copyright Boring Node
  */
 
-import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto'
+import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from 'node:crypto'
 import { MessageBuilder } from '@poppinss/utils'
 import { BaseDriver } from './base_driver.js'
 import { Hmac } from '../hmac.js'
 import * as errors from '../exceptions.js'
-import type { AES256CBCConfig, EncryptionDriverContract } from '../types/main.js'
+import type { AES256CBCConfig, CypherText, EncryptionDriverContract } from '../types/main.js'
+import { base64UrlDecode, base64UrlEncode } from '../base64.js'
 
 export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
   #config: AES256CBCConfig
@@ -39,39 +40,41 @@ export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
    * You can optionally define a purpose for which the value was encrypted and
    * mentioning a different purpose/no purpose during decrypt will fail.
    */
-  encrypt(payload: any, expiresIn?: string | number, purpose?: string): string {
+  encrypt(payload: any, expiresIn?: string | number, purpose?: string): CypherText {
     /**
      * Using a random string as the iv for generating unpredictable values
      */
     const iv = randomBytes(16)
 
+    const { encryptionKey, authenticationKey } = this.#deriveKey(this.getFirstKey().key, iv)
+
     /**
      * Creating chiper
      */
-    const cipher = createCipheriv('aes-256-cbc', this.getFirstKey().key, iv)
+    const cipher = createCipheriv('aes-256-cbc', encryptionKey, iv)
 
     /**
      * Encoding value to a string so that we can set it on the cipher
      */
-    const encodedValue = new MessageBuilder().build(payload, expiresIn, purpose)
+    const plainText = new MessageBuilder().build(payload, expiresIn, purpose)
 
     /**
      * Set final to the cipher instance and encrypt it
      */
-    const encrypted = Buffer.concat([cipher.update(encodedValue, 'utf-8'), cipher.final()])
+    const cipherText = Buffer.concat([cipher.update(plainText), cipher.final()])
 
     /**
      * Concatenate `encrypted value` and `iv` by urlEncoding them. The concatenation is required
      * to generate the HMAC, so that HMAC checks for integrity of both the `encrypted value`
      * and the `iv`.
      */
-    const result = `${encrypted.toString('hex')}${this.separator}${iv.toString('hex')}`
+    const macPayload = `${base64UrlEncode(cipherText)}${this.separator}${base64UrlEncode(iv)}`
 
     /**
      * Returns the id + result + hmac
      */
-    const hmac = new Hmac(this.getFirstKey().key).generate(result)
-    return this.computeReturns([this.#config.id, result, hmac])
+    const hmac = new Hmac(authenticationKey).generate(macPayload)
+    return this.computeReturns([this.#config.id, macPayload, hmac])
   }
 
   /**
@@ -83,11 +86,11 @@ export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
     }
 
     /**
-     * Make sure the encrypted value is in correct format. ie
-     * [id].[encrypted value].[iv].[hash]
+     * Make sure the encrypted value is in the correct format.
+     * i.e.: [id].[encrypted value].[iv].[mac]
      */
-    const [id, encryptedEncoded, ivEncoded, hash] = value.split(this.separator)
-    if (!id || !encryptedEncoded || !ivEncoded || !hash) {
+    const [id, cipherEncoded, ivEncoded, macEncoded] = value.split(this.separator)
+    if (!id || !cipherEncoded || !ivEncoded || !macEncoded) {
       return null
     }
 
@@ -101,15 +104,15 @@ export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
     /**
      * Make sure we are able to decode the encrypted value
      */
-    const encrypted = Buffer.from(encryptedEncoded, 'hex')
-    if (!encrypted) {
+    const cipherText = base64UrlDecode(cipherEncoded)
+    if (!cipherText) {
       return null
     }
 
     /**
      * Make sure we are able to decode the iv
      */
-    const iv = Buffer.from(ivEncoded, 'hex')
+    const iv = base64UrlDecode(ivEncoded)
     if (!iv) {
       return null
     }
@@ -119,9 +122,11 @@ export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
      * string are not tampered.
      */
     for (const { key } of this.cryptoKeys) {
-      const isValidHmac = new Hmac(key).compare(
-        `${encryptedEncoded}${this.separator}${ivEncoded}`,
-        hash
+      const { encryptionKey, authenticationKey } = this.#deriveKey(key, iv)
+
+      const isValidHmac = new Hmac(authenticationKey).compare(
+        `${cipherEncoded}${this.separator}${ivEncoded}`,
+        macEncoded
       )
 
       if (!isValidHmac) {
@@ -133,12 +138,24 @@ export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
        * to avoid leaking sensitive information
        */
       try {
-        const decipher = createDecipheriv('aes-256-cbc', key, iv)
-        const decrypted = decipher.update(encrypted) + decipher.final('utf8')
-        return new MessageBuilder().verify(decrypted, purpose)
+        const decipher = createDecipheriv('aes-256-cbc', encryptionKey, iv)
+        const plainTextBuffer = Buffer.concat([decipher.update(cipherText), decipher.final()])
+        return new MessageBuilder().verify(plainTextBuffer.toString('utf-8'), purpose)
       } catch {}
     }
 
     return null
+  }
+
+  #deriveKey(masterKey: Buffer, iv: Buffer) {
+    const info = Buffer.from(this.#config.id)
+    const rawDerivedKey = hkdfSync('sha256', masterKey, iv, info, 64)
+
+    const derivedKey = Buffer.isBuffer(rawDerivedKey) ? rawDerivedKey : Buffer.from(rawDerivedKey)
+
+    return {
+      encryptionKey: derivedKey.subarray(0, 32),
+      authenticationKey: derivedKey.subarray(32),
+    }
   }
 }

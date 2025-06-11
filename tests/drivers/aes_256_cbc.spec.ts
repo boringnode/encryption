@@ -84,7 +84,7 @@ test.group('AES-256-CBC', () => {
 
     assert.deepEqual(
       driver.decrypt(
-        'lanz.0ae59591860a97bcc44fbcfcbdc855d7989e7ecc4db4ed8ed0d242d434652298.293979b790106206e6d396f6ea92f2cf.4oTirrLj_Q9ituhhcDcx6LOTGYTWKFviDvc8zcbDtlU'
+        'lanz.gA6W70l7mCUpGW7BJPUhgAhpLRSmbh8qV8oRM62d7Jg.jQmpmEF3_z4a7N6KZ0HdxQ.WIIOA2Rm1wejdioEecWJAUvXC_3gqqYrsLvAvj5eaQc.4oTirrLj_Q9ituhhcDcx6LOTGYTWKFviDvc8zcbDtlU'
       ),
       { username: 'lanz' }
     )

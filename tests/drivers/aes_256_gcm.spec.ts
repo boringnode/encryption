@@ -85,7 +85,7 @@ test.group('AES-256-GCM', () => {
 
     assert.deepEqual(
       driver.decrypt(
-        'lanz.dc0557176747dd4dba5445d27e20d865511aee3a3350c76caf27e9a3a524d3.8f7b458370aa80c7680157f81486afde.fb872925a922f735e9d9985ddfb3cae2.urTvWb1cis36VstavYyDDBWFyfL-k19EdAOs6VW8PpE'
+        'lanz.JFPf0dF5fxMF_l8XzGkxKyXuiwwfGbW8HQhmZ0TEMA.bHgH2t61PsbFIdq4.GtWD6AzejaHpFLBk05PReA'
       ),
       { username: 'lanz' }
     )
@@ -100,14 +100,21 @@ test.group('AES-256-GCM', () => {
   test('return null when unable to decode encrypted value', ({ assert }) => {
     const driver = new AES256GCM({ id: 'lanz', keys: [SECRET] })
 
-    assert.isNull(driver.decrypt('lanz.aes256gcm.foo.bar.baz'))
+    assert.isNull(driver.decrypt('lanz.xx.bHgH2t61PsbFIdq4.GtWD6AzejaHpFLBk05PReA'))
   })
 
-  test('return null when hash is tampered', ({ assert }) => {
+  test('return null when unable to decode iv', ({ assert }) => {
+    const token = 'lanz.JFPf0dF5fxMF_l8XzGkxKyXuiwwfGbW8HQhmZ0TEMA.xx.GtWD6AzejaHpFLBk05PReA'
     const driver = new AES256GCM({ id: 'lanz', keys: [SECRET] })
-    const encrypted = driver.encrypt({ username: 'lanz' })
 
-    assert.isNull(driver.decrypt(encrypted.slice(0, -2)))
+    assert.isNull(driver.decrypt(token))
+  })
+
+  test('return null when unable to decode tag', ({ assert }) => {
+    const token = 'lanz.JFPf0dF5fxMF_l8XzGkxKyXuiwwfGbW8HQhmZ0TEMA.bHgH2t61PsbFIdq4.xx'
+    const driver = new AES256GCM({ id: 'lanz', keys: [SECRET] })
+
+    assert.isNull(driver.decrypt(token))
   })
 
   test('return null when encrypted value is tampered', ({ assert }) => {

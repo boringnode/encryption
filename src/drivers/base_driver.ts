@@ -8,7 +8,7 @@
 import { createHash } from 'node:crypto'
 import * as errors from '../exceptions.js'
 import { MessageVerifier } from '../message_verifier.js'
-import type { BaseConfig } from '../types/main.js'
+import type { BaseConfig, CypherText } from '../types/main.js'
 
 export abstract class BaseDriver {
   /**
@@ -50,7 +50,7 @@ export abstract class BaseDriver {
   }
 
   computeReturns(values: string[]) {
-    return values.join(this.separator)
+    return values.join(this.separator) as CypherText
   }
 
   getFirstKey() {
@@ -72,7 +72,7 @@ export abstract class BaseDriver {
    * You can optionally define a purpose for which the value was encrypted and
    * mentioning a different purpose/no purpose during decrypt will fail.
    */
-  abstract encrypt(payload: any, expiresIn?: string | number, purpose?: string): string
+  abstract encrypt(payload: any, expiresIn?: string | number, purpose?: string): CypherText
 
   /**
    * Decrypt value and verify it against a purpose

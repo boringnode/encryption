@@ -8,7 +8,7 @@
 import { RuntimeException } from '@poppinss/utils'
 import debug from './debug.js'
 import { MessageVerifier } from './message_verifier.js'
-import type { EncryptionDriverContract, ManagerDriverFactory } from './types/main.js'
+import type { CypherText, EncryptionDriverContract, ManagerDriverFactory } from './types/main.js'
 
 export class EncryptionManager<KnownEncryptionDriver extends Record<string, ManagerDriverFactory>>
   implements EncryptionDriverContract
@@ -44,7 +44,7 @@ export class EncryptionManager<KnownEncryptionDriver extends Record<string, Mana
   }
 
   /**
-   * Use one of the registered encryption driver to encrypt values.
+   * Use one of the registered encryption drivers to encrypt values.
    *
    * ```ts
    * manager.use() // returns default encrypter
@@ -89,7 +89,7 @@ export class EncryptionManager<KnownEncryptionDriver extends Record<string, Mana
     return this.use().getMessageVerifier()
   }
 
-  encrypt(payload: any, expiresIn?: string | number, purpose?: string): string {
+  encrypt(payload: any, expiresIn?: string | number, purpose?: string): CypherText {
     return this.use().encrypt(payload, expiresIn, purpose)
   }
 

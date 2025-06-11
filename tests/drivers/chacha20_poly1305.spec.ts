@@ -85,7 +85,7 @@ test.group('ChaCha20-Poly1305', () => {
 
     assert.deepEqual(
       driver.decrypt(
-        'lanz.e84d46f8d04eba5de9ed218fde7711b7e04c16a71774f26f88baa44f2d7311.1ff0fbfc1141033d13e45384.03959acba4e476e68fc5dd0f2372b513.7z-DdSj1fndjvThpygKpWSpHUEHUf8IGw7Mey7k13Nw'
+        'lanz.1G6VgYEU4_nsPAGDfsKpCrLQGJMBpw6pExDPf26ukQ.vxSTiMmKaT3LEu38.H25SdXXfMyKk5E-UTKPQDA'
       ),
       { username: 'lanz' }
     )
