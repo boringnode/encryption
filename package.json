@@ -17,6 +17,7 @@
     "clean": "del-cli build",
     "lint": "eslint .",
     "pretest": "yarn lint",
+    "release": "yarn dlx release-it",
     "quick:test": "yarn node --enable-source-maps --import=ts-node-maintained/register/esm bin/test.ts",
     "test": "c8 yarn quick:test",
     "typecheck": "tsc --noEmit"
