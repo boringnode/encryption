@@ -5,23 +5,18 @@
  * @copyright Boring Node
  */
 
-import { createCipheriv, createDecipheriv } from 'node:crypto'
-import string from '@poppinss/utils/string'
-import { base64, MessageBuilder } from '@poppinss/utils'
+import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto'
+import { MessageBuilder } from '@poppinss/utils'
 import { BaseDriver } from './base_driver.ts'
 import { Hmac } from '../hmac.ts'
 import type { EncryptionDriverContract, LegacyConfig } from '../types/main.ts'
+import { base64UrlDecode, base64UrlEncode } from '../base64.js'
 
 /**
  * This driver was mainly created to maintain compatibility
  * with the existing encryption module of AdonisJS.
  */
 export class Legacy extends BaseDriver implements EncryptionDriverContract {
-  /**
-   * Reference to base64 object for base64 encoding/decoding values
-   */
-  base64: typeof base64 = base64
-
   constructor(config: LegacyConfig) {
     super(config)
   }
@@ -44,7 +39,7 @@ export class Legacy extends BaseDriver implements EncryptionDriverContract {
     /**
      * Using a random string as the iv for generating unpredictable values
      */
-    const iv = string.random(16)
+    const iv = randomBytes(16)
 
     /**
      * Creating chiper
@@ -54,27 +49,25 @@ export class Legacy extends BaseDriver implements EncryptionDriverContract {
     /**
      * Encoding value to a string so that we can set it on the cipher
      */
-    const encodedValue = new MessageBuilder().build(payload, expiresIn, purpose)
+    const plainText = new MessageBuilder().build(payload, expiresIn, purpose)
 
     /**
      * Set final to the cipher instance and encrypt it
      */
-    const encrypted = Buffer.concat([cipher.update(encodedValue, 'utf-8'), cipher.final()])
+    const cipherText = Buffer.concat([cipher.update(plainText), cipher.final()])
 
     /**
      * Concatenate `encrypted value` and `iv` by urlEncoding them. The concatenation is required
      * to generate the HMAC, so that HMAC checks for integrity of both the `encrypted value`
      * and the `iv`.
      */
-    const result = `${this.base64.urlEncode(encrypted)}${this.separator}${this.base64.urlEncode(
-      iv
-    )}`
+    const macPayload = `${base64UrlEncode(cipherText)}${this.separator}${base64UrlEncode(iv)}`
 
     /**
      * Returns the result + hmac
      */
-    const hmac = new Hmac(this.getFirstKey().key).generate(result)
-    return this.computeReturns([result, hmac])
+    const hmac = new Hmac(this.getFirstKey().key).generate(macPayload)
+    return this.computeReturns([macPayload, hmac])
   }
 
   /**
@@ -86,26 +79,26 @@ export class Legacy extends BaseDriver implements EncryptionDriverContract {
     }
 
     /**
-     * Make sure the encrypted value is in correct format. ie
-     * [encrypted value].[iv].[hash]
+     * Make sure the encrypted value is in the correct format.
+     * i.e.: [encrypted value].[iv].[mac]
      */
-    const [encryptedEncoded, ivEncoded, hash] = value.split(this.separator)
-    if (!encryptedEncoded || !ivEncoded || !hash) {
+    const [cipherEncoded, ivEncoded, macEncoded] = value.split(this.separator)
+    if (!cipherEncoded || !ivEncoded || !macEncoded) {
       return null
     }
 
     /**
      * Make sure we are able to urlDecode the encrypted value
      */
-    const encrypted = this.base64.urlDecode(encryptedEncoded, 'base64')
-    if (!encrypted) {
+    const cipherText = base64UrlDecode(cipherEncoded)
+    if (!cipherText) {
       return null
     }
 
     /**
      * Make sure we are able to urlDecode the iv
      */
-    const iv = this.base64.urlDecode(ivEncoded)
+    const iv = base64UrlDecode(ivEncoded)
     if (!iv) {
       return null
     }
@@ -116,8 +109,8 @@ export class Legacy extends BaseDriver implements EncryptionDriverContract {
      */
     for (const { key } of this.cryptoKeys) {
       const isValidHmac = new Hmac(key).compare(
-        `${encryptedEncoded}${this.separator}${ivEncoded}`,
-        hash
+        `${cipherEncoded}${this.separator}${ivEncoded}`,
+        macEncoded
       )
 
       if (!isValidHmac) {
@@ -130,9 +123,8 @@ export class Legacy extends BaseDriver implements EncryptionDriverContract {
        */
       try {
         const decipher = createDecipheriv('aes-256-cbc', key, iv)
-        const decrypted = decipher.update(encrypted, 'base64', 'utf8') + decipher.final('utf8')
-
-        return new MessageBuilder().verify(decrypted, purpose)
+        const plainTextBuffer = Buffer.concat([decipher.update(cipherText), decipher.final()])
+        return new MessageBuilder().verify(plainTextBuffer, purpose)
       } catch {}
     }
 
