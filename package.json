@@ -7,10 +7,13 @@
   },
   "main": "build/index.js",
   "type": "module",
+  "files": [
+    "build"
+  ],
   "exports": {
     ".": "./build/index.js",
     "./drivers/*": "./build/src/drivers/*.js",
-    "./types": "./build/src/types/*.js"
+    "./types/*": "./build/src/types/*.js"
   },
   "scripts": {
     "build": "yarn clean && tsup-node",
