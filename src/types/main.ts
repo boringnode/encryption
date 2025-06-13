@@ -5,6 +5,8 @@
  * @copyright Boring Node
  */
 
+import { MessageVerifier } from '../message_verifier.ts'
+
 export type CypherText = `${string}.${string}.${string}.${string}`
 
 /**
@@ -31,6 +33,12 @@ export interface EncryptionDriverContract {
    * Decrypt value and verify it against a purpose
    */
   decrypt<T extends any>(value: string, purpose?: string): T | null
+
+  /**
+   * Returns a message verifier instance that can be used to verify
+   * messages signed with the app secret.
+   */
+  getMessageVerifier(): MessageVerifier
 }
 
 /**

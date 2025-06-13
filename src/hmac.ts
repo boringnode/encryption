@@ -6,8 +6,8 @@
  */
 
 import { createHmac } from 'node:crypto'
-import { safeEqual } from './safe_equal.js'
-import { base64UrlEncode } from './base64.js'
+import { safeEqual } from './safe_equal.ts'
+import { base64UrlEncode } from './base64.ts'
 
 /**
  * A generic class for generating SHA-256 Hmac for verifying the value

@@ -6,9 +6,9 @@
  */
 
 import { RuntimeException } from '@poppinss/utils'
-import debug from './debug.js'
-import { MessageVerifier } from './message_verifier.js'
-import type { CypherText, EncryptionDriverContract, ManagerDriverFactory } from './types/main.js'
+import debug from './debug.ts'
+import { MessageVerifier } from './message_verifier.ts'
+import type { CypherText, EncryptionDriverContract, ManagerDriverFactory } from './types/main.ts'
 
 export class EncryptionManager<KnownEncryptionDriver extends Record<string, ManagerDriverFactory>>
   implements EncryptionDriverContract

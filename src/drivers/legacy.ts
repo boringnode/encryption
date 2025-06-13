@@ -8,9 +8,9 @@
 import { createCipheriv, createDecipheriv } from 'node:crypto'
 import string from '@poppinss/utils/string'
 import { base64, MessageBuilder } from '@poppinss/utils'
-import { BaseDriver } from './base_driver.js'
-import { Hmac } from '../hmac.js'
-import type { EncryptionDriverContract, LegacyConfig } from '../types/main.js'
+import { BaseDriver } from './base_driver.ts'
+import { Hmac } from '../hmac.ts'
+import type { EncryptionDriverContract, LegacyConfig } from '../types/main.ts'
 
 /**
  * This driver was mainly created to maintain compatibility

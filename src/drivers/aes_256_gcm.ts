@@ -7,10 +7,10 @@
 
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto'
 import { MessageBuilder } from '@poppinss/utils'
-import { BaseDriver } from './base_driver.js'
-import * as errors from '../exceptions.js'
-import { base64UrlDecode, base64UrlEncode } from '../base64.js'
-import type { AES256GCMConfig, CypherText, EncryptionDriverContract } from '../types/main.js'
+import { BaseDriver } from './base_driver.ts'
+import * as errors from '../exceptions.ts'
+import { base64UrlDecode, base64UrlEncode } from '../base64.ts'
+import type { AES256GCMConfig, CypherText, EncryptionDriverContract } from '../types/main.ts'
 
 export class AES256GCM extends BaseDriver implements EncryptionDriverContract {
   #config: AES256GCMConfig

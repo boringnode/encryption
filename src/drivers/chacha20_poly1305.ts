@@ -7,10 +7,10 @@
 
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto'
 import { MessageBuilder } from '@poppinss/utils'
-import { BaseDriver } from './base_driver.js'
-import * as errors from '../exceptions.js'
-import type { ChaCha20Poly1305Config, CypherText, EncryptionDriverContract } from '../types/main.js'
-import { base64UrlDecode, base64UrlEncode } from '../base64.js'
+import { BaseDriver } from './base_driver.ts'
+import * as errors from '../exceptions.ts'
+import type { ChaCha20Poly1305Config, CypherText, EncryptionDriverContract } from '../types/main.ts'
+import { base64UrlDecode, base64UrlEncode } from '../base64.ts'
 
 export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverContract {
   #config: ChaCha20Poly1305Config

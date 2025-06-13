@@ -7,11 +7,11 @@
 
 import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from 'node:crypto'
 import { MessageBuilder } from '@poppinss/utils'
-import { BaseDriver } from './base_driver.js'
-import { Hmac } from '../hmac.js'
-import * as errors from '../exceptions.js'
-import type { AES256CBCConfig, CypherText, EncryptionDriverContract } from '../types/main.js'
-import { base64UrlDecode, base64UrlEncode } from '../base64.js'
+import { BaseDriver } from './base_driver.ts'
+import { Hmac } from '../hmac.ts'
+import * as errors from '../exceptions.ts'
+import type { AES256CBCConfig, CypherText, EncryptionDriverContract } from '../types/main.ts'
+import { base64UrlDecode, base64UrlEncode } from '../base64.ts'
 
 export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
   #config: AES256CBCConfig

@@ -6,9 +6,9 @@
  */
 
 import { createHash } from 'node:crypto'
-import * as errors from '../exceptions.js'
-import { MessageVerifier } from '../message_verifier.js'
-import type { BaseConfig, CypherText } from '../types/main.js'
+import * as errors from '../exceptions.ts'
+import { MessageVerifier } from '../message_verifier.ts'
+import type { BaseConfig, CypherText } from '../types/main.ts'
 
 export abstract class BaseDriver {
   /**
@@ -49,13 +49,17 @@ export abstract class BaseDriver {
     }
   }
 
-  computeReturns(values: string[]) {
+  protected computeReturns(values: string[]) {
     return values.join(this.separator) as CypherText
   }
 
-  getFirstKey() {
+  protected getFirstKey() {
     const [firstKey] = this.cryptoKeys
     return firstKey
+  }
+
+  getMessageVerifier() {
+    return this.getFirstKey().verifier
   }
 
   /**
