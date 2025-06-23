@@ -80,7 +80,20 @@ test.group('Encryption manager', () => {
     })
 
     assert.instanceOf(manager.getMessageVerifier(), MessageVerifier)
-  }).skip()
+  })
+
+  test('fail when getting message verifier without default encrypter configured', ({ assert }) => {
+    const manager = new EncryptionManager({
+      list: {
+        legacy: () => new Legacy({ keys: [SECRET] }),
+      },
+    })
+
+    assert.throws(
+      () => manager.getMessageVerifier(),
+      'Cannot create encryption instance. No default encryption is defined in the config'
+    )
+  })
 
   test('encrypt text using the default driver', ({ assert }) => {
     const manager = new EncryptionManager({
