@@ -10,7 +10,7 @@ import { MessageBuilder } from '@poppinss/utils'
 import { BaseDriver } from './base_driver.ts'
 import { Hmac } from '../hmac.ts'
 import type { EncryptionDriverContract, LegacyConfig } from '../types/main.ts'
-import { base64UrlDecode, base64UrlEncode } from '../base64.js'
+import { base64UrlDecode, base64UrlEncode } from '../base64.ts'
 
 /**
  * This driver was mainly created to maintain compatibility

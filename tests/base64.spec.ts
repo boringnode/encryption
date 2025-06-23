@@ -6,7 +6,7 @@
  */
 
 import { test } from '@japa/runner'
-import { base64UrlDecode, base64UrlEncode } from '../src/base64.js'
+import { base64UrlDecode, base64UrlEncode } from '../src/base64.ts'
 
 test.group('base64', () => {
   const dataset: Buffer[] = [
