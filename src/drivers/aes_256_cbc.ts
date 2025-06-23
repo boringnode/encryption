@@ -140,7 +140,7 @@ export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
       try {
         const decipher = createDecipheriv('aes-256-cbc', encryptionKey, iv)
         const plainTextBuffer = Buffer.concat([decipher.update(cipherText), decipher.final()])
-        return new MessageBuilder().verify(plainTextBuffer.toString('utf-8'), purpose)
+        return new MessageBuilder().verify(plainTextBuffer, purpose)
       } catch {}
     }
 
