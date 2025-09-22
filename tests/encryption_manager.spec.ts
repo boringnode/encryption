@@ -9,7 +9,7 @@ import { test } from '@japa/runner'
 import { EncryptionManager } from '../src/encryption_manager.js'
 import { Legacy } from '../src/drivers/legacy.js'
 import { MessageVerifier } from '../src/message_verifier.js'
-import { EncryptionDriverContract } from '../src/types/main.js'
+import type { EncryptionDriverContract } from '../src/types/main.js'
 
 const SECRET = 'averylongradom32charactersstring'
 

@@ -7,7 +7,7 @@
 
 import { RuntimeException } from '@poppinss/utils'
 import debug from './debug.ts'
-import { MessageVerifier } from './message_verifier.ts'
+import type { MessageVerifier } from './message_verifier.ts'
 import type { CypherText, EncryptionDriverContract, ManagerDriverFactory } from './types/main.ts'
 
 export class EncryptionManager<KnownEncryptionDriver extends Record<string, ManagerDriverFactory>>

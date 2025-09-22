@@ -5,7 +5,7 @@
  * @copyright Boring Node
  */
 
-import { MessageVerifier } from '../message_verifier.ts'
+import type { MessageVerifier } from '../message_verifier.ts'
 
 export type CypherText = `${string}.${string}.${string}.${string}`
 
