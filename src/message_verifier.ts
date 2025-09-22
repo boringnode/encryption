@@ -6,7 +6,8 @@
  */
 
 import { createHash } from 'node:crypto'
-import { base64, MessageBuilder, RuntimeException } from '@poppinss/utils'
+import { MessageBuilder, RuntimeException } from '@poppinss/utils'
+import { base64UrlEncode, base64UrlDecode } from './base64.ts'
 import { Hmac } from './hmac.ts'
 
 /**
@@ -52,7 +53,7 @@ export class MessageVerifier {
       throw new RuntimeException(`Cannot sign "${payload}" value`)
     }
 
-    const encoded = base64.urlEncode(new MessageBuilder().build(payload, expiresIn, purpose))
+    const encoded = base64UrlEncode(new MessageBuilder().build(payload, expiresIn, purpose))
     return `${encoded}${this.#separator}${new Hmac(this.#cryptoKey).generate(encoded)}`
   }
 
@@ -75,7 +76,7 @@ export class MessageVerifier {
     /**
      * Ensure value can be decoded
      */
-    const decoded = base64.urlDecode(encoded, undefined, false)
+    const decoded = base64UrlDecode(encoded, 'utf8')
     if (!decoded) {
       return null
     }

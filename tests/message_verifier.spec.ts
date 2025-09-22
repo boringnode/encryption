@@ -6,8 +6,8 @@
  */
 
 import { test } from '@japa/runner'
-import { base64 } from '@poppinss/utils'
 import { MessageVerifier } from '../src/message_verifier.js'
+import { base64UrlDecode } from '../src/base64.ts'
 
 const SECRET = 'averylongradom32charactersstring'
 
@@ -23,7 +23,7 @@ test.group('MessageVerifier', () => {
     const messageVerifier = new MessageVerifier(SECRET)
     const signed = messageVerifier.sign({ username: 'virk' })
 
-    assert.equal(base64.urlDecode(signed.split('.')[0]), '{"message":{"username":"virk"}}')
+    assert.equal(base64UrlDecode(signed.split('.')[0], 'utf8'), '{"message":{"username":"virk"}}')
   })
 
   test('sign an object with purpose', ({ assert }) => {
@@ -31,7 +31,7 @@ test.group('MessageVerifier', () => {
     const signed = messageVerifier.sign({ username: 'virk' }, undefined, 'login')
 
     assert.equal(
-      base64.urlDecode(signed.split('.')[0]),
+      base64UrlDecode(signed.split('.')[0], 'utf8'),
       '{"message":{"username":"virk"},"purpose":"login"}'
     )
   })

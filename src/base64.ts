@@ -5,10 +5,8 @@
  * @copyright Boring Node
  */
 
-export function base64UrlEncode(
-  data: ArrayBuffer | SharedArrayBuffer | Uint8Array | Buffer
-): string {
-  const buffer = Buffer.from(data as any)
+export function base64UrlEncode(data: Uint8Array | Buffer | string): string {
+  const buffer = Buffer.from(data)
 
   return buffer.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
