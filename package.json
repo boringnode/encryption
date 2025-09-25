@@ -13,7 +13,7 @@
   "exports": {
     ".": "./build/index.js",
     "./drivers/*": "./build/src/drivers/*.js",
-    "./types/*": "./build/src/types/*.js"
+    "./types": "./build/src/types/main.js"
   },
   "scripts": {
     "build": "yarn clean && tsup-node",
