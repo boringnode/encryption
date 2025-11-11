@@ -13,6 +13,7 @@
   "exports": {
     ".": "./build/index.js",
     "./drivers/*": "./build/src/drivers/*.js",
+    "./factories": "./build/factories/main.js",
     "./types": "./build/src/types/main.js"
   },
   "scripts": {
