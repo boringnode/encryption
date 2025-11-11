@@ -6,7 +6,8 @@
  */
 
 import { createHash } from 'node:crypto'
-import { MessageBuilder, RuntimeException } from '@poppinss/utils'
+import { MessageBuilder } from '@poppinss/utils'
+import { RuntimeException } from '@poppinss/utils/exception'
 import { base64UrlEncode, base64UrlDecode } from './base64.ts'
 import { Hmac } from './hmac.ts'
 

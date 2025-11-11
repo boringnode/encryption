@@ -5,7 +5,7 @@
  * @copyright Boring Node
  */
 
-import { createError } from '@poppinss/utils'
+import { createError } from '@poppinss/utils/exception'
 
 export const E_INSECURE_ENCRYPTER_KEY = createError(
   'The value of your key should be at least 16 characters long',

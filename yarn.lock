@@ -81,7 +81,7 @@ __metadata:
     "@japa/expect-type": "npm:^2.0.3"
     "@japa/runner": "npm:^4.4.0"
     "@poppinss/ts-exec": "npm:^1.4.1"
-    "@poppinss/utils": "npm:^6.10.1"
+    "@poppinss/utils": "npm:^7.0.0-next.3"
     "@swc/core": "npm:^1.14.0"
     "@types/node": "npm:^22.15.31"
     c8: "npm:^10.1.3"
@@ -1179,7 +1179,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@poppinss/string@npm:^1.2.0, @poppinss/string@npm:^1.3.0":
+"@poppinss/string@npm:^1.2.0":
   version: 1.6.0
   resolution: "@poppinss/string@npm:1.6.0"
   dependencies:
@@ -1195,7 +1195,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@poppinss/string@npm:^1.7.0":
+"@poppinss/string@npm:^1.6.0, @poppinss/string@npm:^1.7.0":
   version: 1.7.0
   resolution: "@poppinss/string@npm:1.7.0"
   dependencies:
@@ -1221,17 +1221,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@poppinss/utils@npm:^6.10.1":
-  version: 6.10.1
-  resolution: "@poppinss/utils@npm:6.10.1"
+"@poppinss/types@npm:^1.1.0":
+  version: 1.2.0
+  resolution: "@poppinss/types@npm:1.2.0"
+  checksum: 10c0/b6388cceb15128f0652a3130b74fcee5b29bd78ae84019590afb1220b6705be5b04009925b938e14d672e2045b44f7770ce4ca147b5d683494a83360448b7bd8
+  languageName: node
+  linkType: hard
+
+"@poppinss/utils@npm:^7.0.0-next.3":
+  version: 7.0.0-next.3
+  resolution: "@poppinss/utils@npm:7.0.0-next.3"
   dependencies:
     "@poppinss/exception": "npm:^1.2.1"
     "@poppinss/object-builder": "npm:^1.1.0"
-    "@poppinss/string": "npm:^1.3.0"
+    "@poppinss/string": "npm:^1.6.0"
+    "@poppinss/types": "npm:^1.1.0"
     flattie: "npm:^1.1.1"
     safe-stable-stringify: "npm:^2.5.0"
     secure-json-parse: "npm:^4.0.0"
-  checksum: 10c0/9ec413e9e829adee8477b5fd3c8572c7afe506ddf52315b825cdc23b2fd5bb56a0ee8ecc5902d0a5155b4c872aaad8466d2084b0054fd26d027a4a6ac034d2b5
+  checksum: 10c0/c07e16e0b45e21ec506f87bab92e7a7be233a1eb33a73692f8b6666124f29d4cf1b9b69b7b0668458ea7e0c8dfc5e5c91998583281593997d31c35f9ee745c96
   languageName: node
   linkType: hard
 

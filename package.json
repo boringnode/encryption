@@ -26,7 +26,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@poppinss/utils": "^6.10.1"
+    "@poppinss/utils": "^7.0.0-next.3"
   },
   "devDependencies": {
     "@adonisjs/eslint-config": "^3.0.0-next.4",

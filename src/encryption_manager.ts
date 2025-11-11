@@ -5,7 +5,7 @@
  * @copyright Boring Node
  */
 
-import { RuntimeException } from '@poppinss/utils'
+import { RuntimeException } from '@poppinss/utils/exception'
 import debug from './debug.ts'
 import type { MessageVerifier } from './message_verifier.ts'
 import type { CypherText, EncryptionDriverContract, ManagerDriverFactory } from './types/main.ts'
