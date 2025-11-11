@@ -7,18 +7,22 @@
 
 import { test } from '@japa/runner'
 import { EncryptionManager } from '../src/encryption_manager.js'
-import { Legacy } from '../src/drivers/legacy.js'
+import { ChaCha20Poly1305 } from '../src/drivers/chacha20_poly1305.ts'
 import { MessageVerifier } from '../src/message_verifier.js'
 import type { EncryptionDriverContract } from '../src/types/main.js'
 
 const SECRET = 'averylongradom32charactersstring'
+const driverConfig = {
+  id: 'nova',
+  keys: [SECRET],
+}
 
 test.group('Encryption manager', () => {
   test('create encryption instance from the manager', ({ assert, expectTypeOf }) => {
     const manager = new EncryptionManager({
       default: 'legacy',
       list: {
-        legacy: () => new Legacy({ keys: [SECRET] }),
+        legacy: () => new ChaCha20Poly1305(driverConfig),
       },
     })
 
@@ -26,15 +30,15 @@ test.group('Encryption manager', () => {
 
     expectTypeOf(manager.use('legacy')).toEqualTypeOf<EncryptionDriverContract>()
 
-    assert.instanceOf(manager.use('legacy'), Legacy)
+    assert.instanceOf(manager.use('legacy'), ChaCha20Poly1305)
   })
 
   test('cache encryption instance', ({ assert, expectTypeOf }) => {
     const manager = new EncryptionManager({
       default: 'legacy',
       list: {
-        legacy: () => new Legacy({ keys: [SECRET] }),
-        legacy1: () => new Legacy({ keys: [SECRET] }),
+        legacy: () => new ChaCha20Poly1305(driverConfig),
+        legacy1: () => new ChaCha20Poly1305(driverConfig),
       },
     })
 
@@ -51,7 +55,7 @@ test.group('Encryption manager', () => {
     const manager = new EncryptionManager({
       default: 'legacy',
       list: {
-        legacy: () => new Legacy({ keys: [SECRET] }),
+        legacy: () => new ChaCha20Poly1305(driverConfig),
       },
     })
 
@@ -61,7 +65,7 @@ test.group('Encryption manager', () => {
   test('fail when default encrypter is not configured', ({ assert }) => {
     const manager = new EncryptionManager({
       list: {
-        legacy: () => new Legacy({ keys: [SECRET] }),
+        legacy: () => new ChaCha20Poly1305(driverConfig),
       },
     })
 
@@ -75,7 +79,7 @@ test.group('Encryption manager', () => {
     const manager = new EncryptionManager({
       default: 'legacy',
       list: {
-        legacy: () => new Legacy({ keys: [SECRET] }),
+        legacy: () => new ChaCha20Poly1305(driverConfig),
       },
     })
 
@@ -85,7 +89,7 @@ test.group('Encryption manager', () => {
   test('fail when getting message verifier without default encrypter configured', ({ assert }) => {
     const manager = new EncryptionManager({
       list: {
-        legacy: () => new Legacy({ keys: [SECRET] }),
+        legacy: () => new ChaCha20Poly1305(driverConfig),
       },
     })
 
@@ -99,7 +103,7 @@ test.group('Encryption manager', () => {
     const manager = new EncryptionManager({
       default: 'legacy',
       list: {
-        legacy: () => new Legacy({ keys: [SECRET] }),
+        legacy: () => new ChaCha20Poly1305(driverConfig),
       },
     })
 
@@ -111,7 +115,7 @@ test.group('Encryption manager', () => {
     const manager = new EncryptionManager({
       default: 'legacy',
       list: {
-        legacy: () => new Legacy({ keys: [SECRET] }),
+        legacy: () => new ChaCha20Poly1305(driverConfig),
       },
     })
 
