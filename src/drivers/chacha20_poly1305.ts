@@ -12,6 +12,18 @@ import * as errors from '../exceptions.ts'
 import type { ChaCha20Poly1305Config, CypherText, EncryptionDriverContract } from '../types/main.ts'
 import { base64UrlDecode, base64UrlEncode } from '../base64.ts'
 
+export interface ChaCha20Poly1305DriverConfig {
+  id: string
+  keys: string[]
+}
+
+export function chacha20poly1305(config: ChaCha20Poly1305DriverConfig) {
+  return {
+    driver: (key: string) => new ChaCha20Poly1305({ id: config.id, key }),
+    keys: config.keys,
+  }
+}
+
 export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverContract {
   #config: ChaCha20Poly1305Config
 
@@ -48,7 +60,7 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
     /**
      * Creating cipher
      */
-    const cipher = createCipheriv('chacha20-poly1305', this.getFirstKey().key, iv, {
+    const cipher = createCipheriv('chacha20-poly1305', this.cryptoKey, iv, {
       authTagLength: 16,
     })
 
@@ -124,27 +136,25 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
       return null
     }
 
-    for (const { key } of this.cryptoKeys) {
-      /**
-       * The Decipher can raise exceptions with malformed input, so we wrap it
-       * to avoid leaking sensitive information
-       */
-      try {
-        const decipher = createDecipheriv('chacha20-poly1305', key, iv, {
-          authTagLength: 16,
-        })
+    /**
+     * The Decipher can raise exceptions with malformed input, so we wrap it
+     * to avoid leaking sensitive information
+     */
+    try {
+      const decipher = createDecipheriv('chacha20-poly1305', this.cryptoKey, iv, {
+        authTagLength: 16,
+      })
 
-        if (purpose) {
-          decipher.setAAD(Buffer.from(purpose), { plaintextLength: Buffer.byteLength(purpose) })
-        }
+      if (purpose) {
+        decipher.setAAD(Buffer.from(purpose), { plaintextLength: Buffer.byteLength(purpose) })
+      }
 
-        decipher.setAuthTag(tag)
+      decipher.setAuthTag(tag)
 
-        const plain = Buffer.concat([decipher.update(cipherText), decipher.final()])
-        return new MessageBuilder().verify(plain)
-      } catch {}
+      const plain = Buffer.concat([decipher.update(cipherText), decipher.final()])
+      return new MessageBuilder().verify(plain)
+    } catch {
+      return null
     }
-
-    return null
   }
 }

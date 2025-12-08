@@ -12,6 +12,18 @@ import * as errors from '../exceptions.ts'
 import { base64UrlDecode, base64UrlEncode } from '../base64.ts'
 import type { AES256GCMConfig, CypherText, EncryptionDriverContract } from '../types/main.ts'
 
+export interface AES256GCMDriverConfig {
+  id: string
+  keys: string[]
+}
+
+export function aes256gcm(config: AES256GCMDriverConfig) {
+  return {
+    driver: (key: string) => new AES256GCM({ id: config.id, key }),
+    keys: config.keys,
+  }
+}
+
 export class AES256GCM extends BaseDriver implements EncryptionDriverContract {
   #config: AES256GCMConfig
 
@@ -48,7 +60,7 @@ export class AES256GCM extends BaseDriver implements EncryptionDriverContract {
     /**
      * Creating chiper
      */
-    const cipher = createCipheriv('aes-256-gcm', this.getFirstKey().key, iv)
+    const cipher = createCipheriv('aes-256-gcm', this.cryptoKey, iv)
 
     if (purpose) {
       cipher.setAAD(Buffer.from(purpose), { plaintextLength: Buffer.byteLength(purpose) })
@@ -122,25 +134,23 @@ export class AES256GCM extends BaseDriver implements EncryptionDriverContract {
       return null
     }
 
-    for (const { key } of this.cryptoKeys) {
-      /**
-       * The Decipher can raise exceptions with malformed input, so we wrap it
-       * to avoid leaking sensitive information
-       */
-      try {
-        const decipher = createDecipheriv('aes-256-gcm', key, iv)
+    /**
+     * The Decipher can raise exceptions with malformed input, so we wrap it
+     * to avoid leaking sensitive information
+     */
+    try {
+      const decipher = createDecipheriv('aes-256-gcm', this.cryptoKey, iv)
 
-        if (purpose) {
-          decipher.setAAD(Buffer.from(purpose), { plaintextLength: Buffer.byteLength(purpose) })
-        }
+      if (purpose) {
+        decipher.setAAD(Buffer.from(purpose), { plaintextLength: Buffer.byteLength(purpose) })
+      }
 
-        decipher.setAuthTag(tag)
+      decipher.setAuthTag(tag)
 
-        const plain = Buffer.concat([decipher.update(cipherText), decipher.final()])
-        return new MessageBuilder().verify(plain)
-      } catch {}
+      const plain = Buffer.concat([decipher.update(cipherText), decipher.final()])
+      return new MessageBuilder().verify(plain)
+    } catch {
+      return null
     }
-
-    return null
   }
 }

@@ -1,20 +1,22 @@
 import { test } from '@japa/runner'
-import { EncryptionManagerFactory } from '../factories/encryption_manager.ts'
-import { EncryptionManager } from '../src/encryption_manager.ts'
-import { ChaCha20Poly1305 } from '../src/drivers/chacha20_poly1305.ts'
+import { EncryptionFactory } from '../factories/encryption.ts'
+import { Encryption } from '../src/encryption.ts'
+import { chacha20poly1305 } from '../src/drivers/chacha20_poly1305.ts'
 
-test.group('Encryption manager factory', () => {
-  test('create instance of EncryptionManager using factory', async ({ assert }) => {
-    const encryption = new EncryptionManagerFactory().create()
+test.group('Encryption factory', () => {
+  test('create instance of Encryption using factory', async ({ assert }) => {
+    const encryption = new EncryptionFactory().create()
 
-    assert.instanceOf(encryption, EncryptionManager)
+    assert.instanceOf(encryption, Encryption)
 
-    const encryptedValue = encryption.use().encrypt('secret')
-    const driverInstance = new ChaCha20Poly1305({
-      id: 'nova',
-      keys: ['averylongradom32charactersstring'],
-    })
+    const encryptedValue = encryption.encrypt('secret')
+    const anotherEncryption = new Encryption(
+      chacha20poly1305({
+        id: 'nova',
+        keys: ['averylongradom32charactersstring'],
+      })
+    )
 
-    assert.equal(driverInstance.decrypt(encryptedValue), 'secret')
+    assert.equal(anotherEncryption.decrypt(encryptedValue), 'secret')
   })
 })

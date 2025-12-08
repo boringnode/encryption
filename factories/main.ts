@@ -5,4 +5,4 @@
  * @copyright Boring Node
  */
 
-export { EncryptionManagerFactory } from './encryption_manager.ts'
+export { EncryptionFactory } from './encryption.ts'

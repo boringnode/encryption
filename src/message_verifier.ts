@@ -19,10 +19,10 @@ import { Hmac } from './hmac.ts'
  */
 export class MessageVerifier {
   /**
-   * The key for signing and encrypting values. It is derived
-   * from the user provided secret.
+   * The keys for signing and verifying values. They are derived
+   * from the user provided secrets.
    */
-  #cryptoKey: Buffer
+  #cryptoKeys: Buffer[]
 
   /**
    * Use `dot` as a separator for joining encrypted value, iv and the
@@ -31,8 +31,9 @@ export class MessageVerifier {
    */
   #separator = '.'
 
-  constructor(secret: string) {
-    this.#cryptoKey = createHash('sha256').update(secret).digest()
+  constructor(secret: string | string[]) {
+    const secrets = Array.isArray(secret) ? secret : [secret]
+    this.#cryptoKeys = secrets.map((s) => createHash('sha256').update(s).digest())
   }
 
   /**
@@ -55,7 +56,7 @@ export class MessageVerifier {
     }
 
     const encoded = base64UrlEncode(new MessageBuilder().build(payload, expiresIn, purpose))
-    return `${encoded}${this.#separator}${new Hmac(this.#cryptoKey).generate(encoded)}`
+    return `${encoded}${this.#separator}${new Hmac(this.#cryptoKeys[0]).generate(encoded)}`
   }
 
   /**
@@ -82,7 +83,13 @@ export class MessageVerifier {
       return null
     }
 
-    const isValid = new Hmac(this.#cryptoKey).compare(encoded, hash)
-    return isValid ? new MessageBuilder().verify(decoded, purpose) : null
+    for (const cryptoKey of this.#cryptoKeys) {
+      const isValid = new Hmac(cryptoKey).compare(encoded, hash)
+      if (isValid) {
+        return new MessageBuilder().verify(decoded, purpose)
+      }
+    }
+
+    return null
   }
 }

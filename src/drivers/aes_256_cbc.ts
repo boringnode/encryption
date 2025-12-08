@@ -13,6 +13,18 @@ import * as errors from '../exceptions.ts'
 import type { AES256CBCConfig, CypherText, EncryptionDriverContract } from '../types/main.ts'
 import { base64UrlDecode, base64UrlEncode } from '../base64.ts'
 
+export interface AES256CBCDriverConfig {
+  id: string
+  keys: string[]
+}
+
+export function aes256cbc(config: AES256CBCDriverConfig) {
+  return {
+    driver: (key: string) => new AES256CBC({ id: config.id, key }),
+    keys: config.keys,
+  }
+}
+
 export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
   #config: AES256CBCConfig
 
@@ -46,7 +58,7 @@ export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
      */
     const iv = randomBytes(16)
 
-    const { encryptionKey, authenticationKey } = this.#deriveKey(this.getFirstKey().key, iv)
+    const { encryptionKey, authenticationKey } = this.#deriveKey(this.cryptoKey, iv)
 
     /**
      * Creating chiper
@@ -121,30 +133,28 @@ export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
      * Make sure the hash is correct, it means the first 2 parts of the
      * string are not tampered.
      */
-    for (const { key } of this.cryptoKeys) {
-      const { encryptionKey, authenticationKey } = this.#deriveKey(key, iv)
+    const { encryptionKey, authenticationKey } = this.#deriveKey(this.cryptoKey, iv)
 
-      const isValidHmac = new Hmac(authenticationKey).compare(
-        `${cipherEncoded}${this.separator}${ivEncoded}`,
-        macEncoded
-      )
+    const isValidHmac = new Hmac(authenticationKey).compare(
+      `${cipherEncoded}${this.separator}${ivEncoded}`,
+      macEncoded
+    )
 
-      if (!isValidHmac) {
-        continue
-      }
-
-      /**
-       * The Decipher can raise exceptions with malformed input, so we wrap it
-       * to avoid leaking sensitive information
-       */
-      try {
-        const decipher = createDecipheriv('aes-256-cbc', encryptionKey, iv)
-        const plainTextBuffer = Buffer.concat([decipher.update(cipherText), decipher.final()])
-        return new MessageBuilder().verify(plainTextBuffer, purpose)
-      } catch {}
+    if (!isValidHmac) {
+      return null
     }
 
-    return null
+    /**
+     * The Decipher can raise exceptions with malformed input, so we wrap it
+     * to avoid leaking sensitive information
+     */
+    try {
+      const decipher = createDecipheriv('aes-256-cbc', encryptionKey, iv)
+      const plainTextBuffer = Buffer.concat([decipher.update(cipherText), decipher.final()])
+      return new MessageBuilder().verify(plainTextBuffer, purpose)
+    } catch {
+      return null
+    }
   }
 
   #deriveKey(masterKey: Buffer, iv: Buffer) {

@@ -7,57 +7,43 @@
 
 import { RuntimeException } from '@poppinss/utils/exception'
 import debug from './debug.ts'
+import { Encryption, type EncryptionConfig } from './encryption.ts'
 import type { MessageVerifier } from './message_verifier.ts'
-import type { CypherText, EncryptionDriverContract, ManagerDriverFactory } from './types/main.ts'
+import type { CypherText } from './types/main.ts'
 
-export class EncryptionManager<KnownEncryptionDriver extends Record<string, ManagerDriverFactory>>
-  implements EncryptionDriverContract
-{
+export class EncryptionManager<KnownEncrypters extends Record<string, EncryptionConfig>> {
   /**
    * Encryption manager config with the
-   * list of encryption drivers in use.
+   * list of encrypters in use.
    */
   readonly #config: {
-    default?: keyof KnownEncryptionDriver
-    list: KnownEncryptionDriver
+    default?: keyof KnownEncrypters
+    list: KnownEncrypters
   }
 
   /**
-   * Cache of encryption drivers.
+   * Cache of encryption instances.
    */
-  #encryptionDriverCache: Partial<Record<keyof KnownEncryptionDriver, EncryptionDriverContract>> =
-    {}
+  #encryptionCache: Partial<Record<keyof KnownEncrypters, Encryption>> = {}
 
-  constructor(config: { default?: keyof KnownEncryptionDriver; list: KnownEncryptionDriver }) {
+  constructor(config: { default?: keyof KnownEncrypters; list: KnownEncrypters }) {
     this.#config = config
 
     debug('creating encryption manager. config: %O', this.#config)
   }
 
   /**
-   * Creates an instance of an encryption driver,
-   */
-  #createDriver<DriverFactory extends ManagerDriverFactory>(
-    factory: DriverFactory
-  ): ReturnType<DriverFactory> {
-    return factory() as ReturnType<DriverFactory>
-  }
-
-  /**
-   * Use one of the registered encryption drivers to encrypt values.
+   * Use one of the registered encrypters to encrypt values.
    *
    * ```ts
    * manager.use() // returns default encrypter
    * manager.use('aes_256_cbc')
    * ```
    */
-  use<EncryptionDriver extends keyof KnownEncryptionDriver>(
-    encryptionDriver?: EncryptionDriver
-  ): EncryptionDriverContract {
-    let driverToUse: keyof KnownEncryptionDriver | undefined =
-      encryptionDriver || this.#config.default
+  use<EncrypterName extends keyof KnownEncrypters>(encrypterName?: EncrypterName): Encryption {
+    let encrypterToUse: keyof KnownEncrypters | undefined = encrypterName || this.#config.default
 
-    if (!driverToUse) {
+    if (!encrypterToUse) {
       throw new RuntimeException(
         'Cannot create encryption instance. No default encryption is defined in the config'
       )
@@ -66,21 +52,21 @@ export class EncryptionManager<KnownEncryptionDriver extends Record<string, Mana
     /**
      * Use cached copy if exists
      */
-    const cachedDriver = this.#encryptionDriverCache[driverToUse]
-    if (cachedDriver) {
-      debug('using encrypter from cache. name: "%s"', driverToUse)
-      return cachedDriver
+    const cachedEncryption = this.#encryptionCache[encrypterToUse]
+    if (cachedEncryption) {
+      debug('using encrypter from cache. name: "%s"', encrypterToUse)
+      return cachedEncryption
     }
 
-    const driverFactory = this.#config.list[driverToUse]
+    const encrypterConfig = this.#config.list[encrypterToUse]
 
     /**
      * Create a new instance of Encryption class with the selected
-     * driver and cache it
+     * config and cache it
      */
-    debug('creating encryption driver. name: "%s"', driverToUse)
-    const encryption = this.#createDriver(driverFactory)
-    this.#encryptionDriverCache[driverToUse] = encryption
+    debug('creating encryption instance. name: "%s"', encrypterToUse)
+    const encryption = new Encryption(encrypterConfig)
+    this.#encryptionCache[encrypterToUse] = encryption
 
     return encryption
   }

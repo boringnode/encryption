@@ -7,45 +7,41 @@
 
 import { test } from '@japa/runner'
 import { EncryptionManager } from '../src/encryption_manager.js'
-import { ChaCha20Poly1305 } from '../src/drivers/chacha20_poly1305.ts'
+import { Encryption } from '../src/encryption.js'
+import { chacha20poly1305 } from '../src/drivers/chacha20_poly1305.js'
 import { MessageVerifier } from '../src/message_verifier.js'
-import type { EncryptionDriverContract } from '../src/types/main.js'
 
 const SECRET = 'averylongradom32charactersstring'
-const driverConfig = {
-  id: 'nova',
-  keys: [SECRET],
-}
 
 test.group('Encryption manager', () => {
   test('create encryption instance from the manager', ({ assert, expectTypeOf }) => {
     const manager = new EncryptionManager({
       default: 'legacy',
       list: {
-        legacy: () => new ChaCha20Poly1305(driverConfig),
+        legacy: chacha20poly1305({ id: 'nova', keys: [SECRET] }),
       },
     })
 
     expectTypeOf(manager.use).parameter(0).toEqualTypeOf<'legacy' | undefined>()
 
-    expectTypeOf(manager.use('legacy')).toEqualTypeOf<EncryptionDriverContract>()
+    expectTypeOf(manager.use('legacy')).toEqualTypeOf<Encryption>()
 
-    assert.instanceOf(manager.use('legacy'), ChaCha20Poly1305)
+    assert.instanceOf(manager.use('legacy'), Encryption)
   })
 
   test('cache encryption instance', ({ assert, expectTypeOf }) => {
     const manager = new EncryptionManager({
       default: 'legacy',
       list: {
-        legacy: () => new ChaCha20Poly1305(driverConfig),
-        legacy1: () => new ChaCha20Poly1305(driverConfig),
+        legacy: chacha20poly1305({ id: 'nova', keys: [SECRET] }),
+        legacy1: chacha20poly1305({ id: 'nova', keys: [SECRET] }),
       },
     })
 
     expectTypeOf(manager.use).parameter(0).toEqualTypeOf<'legacy' | 'legacy1' | undefined>()
 
-    expectTypeOf(manager.use('legacy')).toEqualTypeOf<EncryptionDriverContract>()
-    expectTypeOf(manager.use('legacy1')).toEqualTypeOf<EncryptionDriverContract>()
+    expectTypeOf(manager.use('legacy')).toEqualTypeOf<Encryption>()
+    expectTypeOf(manager.use('legacy1')).toEqualTypeOf<Encryption>()
 
     assert.strictEqual(manager.use('legacy'), manager.use('legacy'))
     assert.notStrictEqual(manager.use('legacy'), manager.use('legacy1'))
@@ -55,7 +51,7 @@ test.group('Encryption manager', () => {
     const manager = new EncryptionManager({
       default: 'legacy',
       list: {
-        legacy: () => new ChaCha20Poly1305(driverConfig),
+        legacy: chacha20poly1305({ id: 'nova', keys: [SECRET] }),
       },
     })
 
@@ -65,7 +61,7 @@ test.group('Encryption manager', () => {
   test('fail when default encrypter is not configured', ({ assert }) => {
     const manager = new EncryptionManager({
       list: {
-        legacy: () => new ChaCha20Poly1305(driverConfig),
+        legacy: chacha20poly1305({ id: 'nova', keys: [SECRET] }),
       },
     })
 
@@ -79,7 +75,7 @@ test.group('Encryption manager', () => {
     const manager = new EncryptionManager({
       default: 'legacy',
       list: {
-        legacy: () => new ChaCha20Poly1305(driverConfig),
+        legacy: chacha20poly1305({ id: 'nova', keys: [SECRET] }),
       },
     })
 
@@ -89,7 +85,7 @@ test.group('Encryption manager', () => {
   test('fail when getting message verifier without default encrypter configured', ({ assert }) => {
     const manager = new EncryptionManager({
       list: {
-        legacy: () => new ChaCha20Poly1305(driverConfig),
+        legacy: chacha20poly1305({ id: 'nova', keys: [SECRET] }),
       },
     })
 
@@ -103,7 +99,7 @@ test.group('Encryption manager', () => {
     const manager = new EncryptionManager({
       default: 'legacy',
       list: {
-        legacy: () => new ChaCha20Poly1305(driverConfig),
+        legacy: chacha20poly1305({ id: 'nova', keys: [SECRET] }),
       },
     })
 
@@ -115,7 +111,7 @@ test.group('Encryption manager', () => {
     const manager = new EncryptionManager({
       default: 'legacy',
       list: {
-        legacy: () => new ChaCha20Poly1305(driverConfig),
+        legacy: chacha20poly1305({ id: 'nova', keys: [SECRET] }),
       },
     })
 

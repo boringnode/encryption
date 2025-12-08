@@ -14,6 +14,8 @@
     ".": "./build/index.js",
     "./drivers/*": "./build/src/drivers/*.js",
     "./factories": "./build/factories/main.js",
+    "./message_verifier": "./build/src/message_verifier.js",
+    "./base64": "./build/src/base64.js",
     "./types": "./build/src/types/main.js"
   },
   "scripts": {

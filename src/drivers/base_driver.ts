@@ -7,15 +7,14 @@
 
 import { createHash } from 'node:crypto'
 import * as errors from '../exceptions.ts'
-import { MessageVerifier } from '../message_verifier.ts'
 import type { BaseConfig, CypherText } from '../types/main.ts'
 
 export abstract class BaseDriver {
   /**
-   * The key for signing and encrypting values. It is derived
+   * The key for encrypting values. It is derived
    * from the user provided secret.
    */
-  cryptoKeys = new Set<{ key: Buffer; verifier: MessageVerifier }>()
+  cryptoKey: Buffer
 
   /**
    * Use `dot` as a separator for joining encrypted value, iv and the
@@ -24,16 +23,8 @@ export abstract class BaseDriver {
   separator = '.'
 
   protected constructor(config: BaseConfig) {
-    if (!config.keys || !Array.isArray(config.keys)) {
-      throw new errors.E_MISSING_ENCRYPTER_KEY()
-    }
-
-    for (const key of config.keys) {
-      this.#validateSecret(key)
-
-      const cryptoKey = createHash('sha256').update(key).digest()
-      this.cryptoKeys.add({ key: cryptoKey, verifier: new MessageVerifier(key) })
-    }
+    this.#validateSecret(config.key)
+    this.cryptoKey = createHash('sha256').update(config.key).digest()
   }
 
   /**
@@ -51,15 +42,6 @@ export abstract class BaseDriver {
 
   protected computeReturns(values: string[]) {
     return values.join(this.separator) as CypherText
-  }
-
-  protected getFirstKey() {
-    const [firstKey] = this.cryptoKeys
-    return firstKey
-  }
-
-  getMessageVerifier() {
-    return this.getFirstKey().verifier
   }
 
   /**
