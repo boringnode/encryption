@@ -8,6 +8,7 @@
 import { createHash } from 'node:crypto'
 import * as errors from '../exceptions.ts'
 import type { BaseConfig, CypherText } from '../types/main.ts'
+import { type Secret } from '@poppinss/utils'
 
 export abstract class BaseDriver {
   /**
@@ -23,21 +24,24 @@ export abstract class BaseDriver {
   separator = '.'
 
   protected constructor(config: BaseConfig) {
-    this.#validateSecret(config.key)
-    this.cryptoKey = createHash('sha256').update(config.key).digest()
+    const key = this.#validateAndGetSecret(config.key)
+    this.cryptoKey = createHash('sha256').update(key).digest()
   }
 
   /**
-   * Validates the app secret
+   * Validates the app secret and returns it back as a string
    */
-  #validateSecret(secret: string) {
+  #validateAndGetSecret(secret: string | Secret<string>): string {
     if (!secret) {
       throw new errors.E_MISSING_ENCRYPTER_KEY()
     }
 
-    if (secret.length < 16) {
+    const revealedSecret = typeof secret === 'string' ? secret : secret.release()
+    if (revealedSecret.length < 16) {
       throw new errors.E_INSECURE_ENCRYPTER_KEY()
     }
+
+    return revealedSecret
   }
 
   protected computeReturns(values: string[]) {

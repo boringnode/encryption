@@ -6,7 +6,7 @@
  */
 
 import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from 'node:crypto'
-import { MessageBuilder } from '@poppinss/utils'
+import { MessageBuilder, type Secret } from '@poppinss/utils'
 import { BaseDriver } from './base_driver.ts'
 import { Hmac } from '../hmac.ts'
 import * as errors from '../exceptions.ts'
@@ -15,12 +15,12 @@ import { base64UrlDecode, base64UrlEncode } from '../base64.ts'
 
 export interface AES256CBCDriverConfig {
   id: string
-  keys: string[]
+  keys: (string | Secret<string>)[]
 }
 
 export function aes256cbc(config: AES256CBCDriverConfig) {
   return {
-    driver: (key: string) => new AES256CBC({ id: config.id, key }),
+    driver: (key: string | Secret<string>) => new AES256CBC({ id: config.id, key }),
     keys: config.keys,
   }
 }

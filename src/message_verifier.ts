@@ -6,7 +6,7 @@
  */
 
 import { createHash } from 'node:crypto'
-import { MessageBuilder } from '@poppinss/utils'
+import { MessageBuilder, type Secret } from '@poppinss/utils'
 import { RuntimeException } from '@poppinss/utils/exception'
 import { base64UrlEncode, base64UrlDecode } from './base64.ts'
 import { Hmac } from './hmac.ts'
@@ -31,9 +31,12 @@ export class MessageVerifier {
    */
   #separator = '.'
 
-  constructor(secret: string | string[]) {
-    const secrets = Array.isArray(secret) ? secret : [secret]
-    this.#cryptoKeys = secrets.map((s) => createHash('sha256').update(s).digest())
+  constructor(secrets: (string | Secret<string>)[]) {
+    this.#cryptoKeys = secrets.map((s) =>
+      createHash('sha256')
+        .update(typeof s === 'string' ? s : s.release())
+        .digest()
+    )
   }
 
   /**

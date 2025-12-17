@@ -6,23 +6,7 @@
  */
 
 import { MessageVerifier } from './message_verifier.ts'
-import type { CypherText, EncryptionDriverContract } from './types/main.ts'
-
-/**
- * Configuration for the Encryption class
- */
-export interface EncryptionConfig {
-  /**
-   * Factory function that creates a driver instance for a given key
-   */
-  driver: (key: string) => EncryptionDriverContract
-
-  /**
-   * List of keys to use for encryption/decryption.
-   * The first key is used for encryption, all keys are tried for decryption.
-   */
-  keys: string[]
-}
+import type { CypherText, EncryptionConfig, EncryptionDriverContract } from './types/main.ts'
 
 /**
  * Encryption class that wraps a driver and manages multiple keys.
