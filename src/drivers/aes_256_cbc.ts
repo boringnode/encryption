@@ -10,7 +10,12 @@ import { MessageBuilder, type Secret } from '@poppinss/utils'
 import { BaseDriver } from './base_driver.ts'
 import { Hmac } from '../hmac.ts'
 import * as errors from '../exceptions.ts'
-import type { AES256CBCConfig, CypherText, EncryptionDriverContract } from '../types/main.ts'
+import type {
+  AES256CBCConfig,
+  CypherText,
+  EncryptionConfig,
+  EncryptionDriverContract,
+} from '../types/main.ts'
 import { base64UrlDecode, base64UrlEncode } from '../base64.ts'
 
 export interface AES256CBCDriverConfig {
@@ -20,9 +25,9 @@ export interface AES256CBCDriverConfig {
 
 export function aes256cbc(config: AES256CBCDriverConfig) {
   return {
-    driver: (key: string | Secret<string>) => new AES256CBC({ id: config.id, key }),
+    driver: (key) => new AES256CBC({ id: config.id, key }),
     keys: config.keys,
-  }
+  } satisfies EncryptionConfig
 }
 
 export class AES256CBC extends BaseDriver implements EncryptionDriverContract {

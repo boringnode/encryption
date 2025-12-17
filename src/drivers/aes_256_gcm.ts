@@ -10,7 +10,12 @@ import { MessageBuilder, type Secret } from '@poppinss/utils'
 import { BaseDriver } from './base_driver.ts'
 import * as errors from '../exceptions.ts'
 import { base64UrlDecode, base64UrlEncode } from '../base64.ts'
-import type { AES256GCMConfig, CypherText, EncryptionDriverContract } from '../types/main.ts'
+import type {
+  AES256GCMConfig,
+  CypherText,
+  EncryptionConfig,
+  EncryptionDriverContract,
+} from '../types/main.ts'
 
 export interface AES256GCMDriverConfig {
   id: string
@@ -19,9 +24,9 @@ export interface AES256GCMDriverConfig {
 
 export function aes256gcm(config: AES256GCMDriverConfig) {
   return {
-    driver: (key: string | Secret<string>) => new AES256GCM({ id: config.id, key }),
+    driver: (key) => new AES256GCM({ id: config.id, key }),
     keys: config.keys,
-  }
+  } satisfies EncryptionConfig
 }
 
 export class AES256GCM extends BaseDriver implements EncryptionDriverContract {
