@@ -6,22 +6,27 @@
  */
 
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto'
-import { MessageBuilder } from '@poppinss/utils'
+import { MessageBuilder, type Secret } from '@poppinss/utils'
 import { BaseDriver } from './base_driver.ts'
 import * as errors from '../exceptions.ts'
-import type { ChaCha20Poly1305Config, CypherText, EncryptionDriverContract } from '../types/main.ts'
+import type {
+  ChaCha20Poly1305Config,
+  CypherText,
+  EncryptionConfig,
+  EncryptionDriverContract,
+} from '../types/main.ts'
 import { base64UrlDecode, base64UrlEncode } from '../base64.ts'
 
 export interface ChaCha20Poly1305DriverConfig {
   id: string
-  keys: string[]
+  keys: (string | Secret<string>)[]
 }
 
 export function chacha20poly1305(config: ChaCha20Poly1305DriverConfig) {
   return {
-    driver: (key: string) => new ChaCha20Poly1305({ id: config.id, key }),
+    driver: (key) => new ChaCha20Poly1305({ id: config.id, key }),
     keys: config.keys,
-  }
+  } satisfies EncryptionConfig
 }
 
 export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverContract {

@@ -7,9 +7,9 @@
 
 import { RuntimeException } from '@poppinss/utils/exception'
 import debug from './debug.ts'
-import { Encryption, type EncryptionConfig } from './encryption.ts'
+import { Encryption } from './encryption.ts'
 import type { MessageVerifier } from './message_verifier.ts'
-import type { CypherText } from './types/main.ts'
+import type { CypherText, EncryptionConfig } from './types/main.ts'
 
 export class EncryptionManager<KnownEncrypters extends Record<string, EncryptionConfig>> {
   /**

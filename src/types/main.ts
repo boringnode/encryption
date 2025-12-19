@@ -5,6 +5,8 @@
  * @copyright Boring Node
  */
 
+import { type Secret } from '@poppinss/utils'
+
 export type CypherText = `${string}.${string}.${string}.${string}`
 
 /**
@@ -41,7 +43,7 @@ export interface EncryptionDriverContract {
 export type ManagerDriverFactory = () => EncryptionDriverContract
 
 export interface BaseConfig {
-  key: string
+  key: string | Secret<string>
 }
 
 export interface LegacyConfig extends BaseConfig {}
@@ -58,4 +60,20 @@ export interface ChaCha20Poly1305Config extends BaseConfig {
 export type Config<KnownEncrypters extends Record<string, ManagerDriverFactory>> = {
   default?: keyof KnownEncrypters
   list: KnownEncrypters
+}
+
+/**
+ * Configuration for the Encryption class
+ */
+export interface EncryptionConfig {
+  /**
+   * Factory function that creates a driver instance for a given key
+   */
+  driver: (key: string | Secret<string>) => EncryptionDriverContract
+
+  /**
+   * List of keys to use for encryption/decryption.
+   * The first key is used for encryption, all keys are tried for decryption.
+   */
+  keys: (string | Secret<string>)[]
 }
