@@ -5,8 +5,9 @@
  * @copyright Boring Node
  */
 
-import { Encryption, type EncryptionConfig } from '../src/encryption.ts'
+import { Encryption } from '../src/encryption.ts'
 import { chacha20poly1305 } from '../src/drivers/chacha20_poly1305.ts'
+import { type EncryptionConfig } from '../src/types/main.ts'
 
 export class EncryptionFactory {
   #config: EncryptionConfig
