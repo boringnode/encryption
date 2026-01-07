@@ -23,6 +23,7 @@
     "clean": "del-cli build",
     "lint": "eslint .",
     "pretest": "yarn lint",
+    "prepublishOnly": "npm run build",
     "release": "yarn dlx release-it",
     "quick:test": "yarn node --import=@poppinss/ts-exec --enable-source-maps bin/test.ts",
     "test": "c8 yarn quick:test",
