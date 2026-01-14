@@ -5,7 +5,9 @@
  * @copyright Boring Node
  */
 
-import { timingSafeEqual } from 'node:crypto'
+import { timingSafeEqual, createHmac, randomBytes } from 'node:crypto'
+
+const hmacKey = randomBytes(32)
 
 export function safeEqual(
   a: string | ArrayBuffer | SharedArrayBuffer | Uint8Array | Buffer,
@@ -14,9 +16,8 @@ export function safeEqual(
   const bufferA = typeof a === 'string' ? Buffer.from(a, 'utf8') : Buffer.from(a as ArrayBuffer)
   const bufferB = typeof b === 'string' ? Buffer.from(b, 'utf8') : Buffer.from(b as ArrayBuffer)
 
-  if (bufferA.length !== bufferB.length) {
-    return false
-  }
+  const hmacA = createHmac('sha256', hmacKey).update(bufferA).digest()
+  const hmacB = createHmac('sha256', hmacKey).update(bufferB).digest()
 
-  return timingSafeEqual(bufferA, bufferB)
+  return timingSafeEqual(hmacA, hmacB)
 }
