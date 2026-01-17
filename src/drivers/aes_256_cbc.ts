@@ -15,6 +15,7 @@ import type {
   CypherText,
   EncryptionConfig,
   EncryptionDriverContract,
+  EncryptOptions,
 } from '../types/main.ts'
 import { base64UrlDecode, base64UrlEncode } from '../base64.ts'
 
@@ -57,7 +58,24 @@ export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
    * You can optionally define a purpose for which the value was encrypted and
    * mentioning a different purpose/no purpose during decrypt will fail.
    */
-  encrypt(payload: any, expiresIn?: string | number, purpose?: string): CypherText {
+  encrypt(payload: any, options?: EncryptOptions): CypherText
+  encrypt(payload: any, expiresIn?: string | number, purpose?: string): CypherText
+  encrypt(
+    payload: any,
+    expiresInOrOptions?: string | number | EncryptOptions,
+    purpose?: string
+  ): CypherText {
+    let expiresIn: string | number | undefined
+    let actualPurpose: string | undefined
+
+    if (typeof expiresInOrOptions === 'object' && expiresInOrOptions !== null) {
+      expiresIn = expiresInOrOptions.expiresIn
+      actualPurpose = expiresInOrOptions.purpose
+    } else {
+      expiresIn = expiresInOrOptions
+      actualPurpose = purpose
+    }
+
     /**
      * Using a random string as the iv for generating unpredictable values
      */
@@ -73,7 +91,7 @@ export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
     /**
      * Encoding value to a string so that we can set it on the cipher
      */
-    const plainText = new MessageBuilder().build(payload, expiresIn, purpose)
+    const plainText = new MessageBuilder().build(payload, expiresIn, actualPurpose)
 
     /**
      * Set final to the cipher instance and encrypt it

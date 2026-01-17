@@ -10,6 +10,14 @@ import { type Secret } from '@poppinss/utils'
 export type CypherText = `${string}.${string}.${string}.${string}`
 
 /**
+ * Options for the encrypt method
+ */
+export interface EncryptOptions {
+  expiresIn?: string | number
+  purpose?: string
+}
+
+/**
  * The contract Encryption drivers should adhere to
  */
 export interface EncryptionDriverContract {
@@ -27,6 +35,7 @@ export interface EncryptionDriverContract {
    * You can optionally define a purpose for which the value was encrypted and
    * mentioning a different purpose/no purpose during decrypt will fail.
    */
+  encrypt(payload: any, options?: EncryptOptions): CypherText
   encrypt(payload: any, expiresIn?: string | number, purpose?: string): CypherText
 
   /**

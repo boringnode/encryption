@@ -14,6 +14,7 @@ import type {
   CypherText,
   EncryptionConfig,
   EncryptionDriverContract,
+  EncryptOptions,
 } from '../types/main.ts'
 import { base64UrlDecode, base64UrlEncode } from '../base64.ts'
 
@@ -56,7 +57,24 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
    * You can optionally define a purpose for which the value was encrypted and
    * mentioning a different purpose/no purpose during decrypt will fail.
    */
-  encrypt(payload: any, expiresIn?: string | number, purpose?: string): CypherText {
+  encrypt(payload: any, options?: EncryptOptions): CypherText
+  encrypt(payload: any, expiresIn?: string | number, purpose?: string): CypherText
+  encrypt(
+    payload: any,
+    expiresInOrOptions?: string | number | EncryptOptions,
+    purpose?: string
+  ): CypherText {
+    let expiresIn: string | number | undefined
+    let actualPurpose: string | undefined
+
+    if (typeof expiresInOrOptions === 'object' && expiresInOrOptions !== null) {
+      expiresIn = expiresInOrOptions.expiresIn
+      actualPurpose = expiresInOrOptions.purpose
+    } else {
+      expiresIn = expiresInOrOptions
+      actualPurpose = purpose
+    }
+
     /**
      * Using a random string as the iv for generating unpredictable values
      */
@@ -69,8 +87,10 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
       authTagLength: 16,
     })
 
-    if (purpose) {
-      cipher.setAAD(Buffer.from(purpose), { plaintextLength: Buffer.byteLength(purpose) })
+    if (actualPurpose) {
+      cipher.setAAD(Buffer.from(actualPurpose), {
+        plaintextLength: Buffer.byteLength(actualPurpose),
+      })
     }
 
     /**

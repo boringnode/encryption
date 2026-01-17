@@ -137,7 +137,7 @@ test.group('AES-256-GCM', () => {
 
   test('return null when purpose is missing during decrypt', ({ assert }) => {
     const driver = new AES256GCM({ id: 'lanz', key: SECRET })
-    const encrypted = driver.encrypt({ username: 'lanz' }, undefined, 'login')
+    const encrypted = driver.encrypt({ username: 'lanz' }, { purpose: 'login' })
 
     assert.isNull(driver.decrypt(encrypted))
   })
@@ -151,12 +151,26 @@ test.group('AES-256-GCM', () => {
 
   test('return null when purpose are not same', ({ assert }) => {
     const driver = new AES256GCM({ id: 'lanz', key: SECRET })
-    const encrypted = driver.encrypt({ username: 'lanz' }, undefined, 'register')
+    const encrypted = driver.encrypt({ username: 'lanz' }, { purpose: 'register' })
 
     assert.isNull(driver.decrypt(encrypted, 'login'))
   })
 
   test('decrypt when purpose are same', ({ assert }) => {
+    const driver = new AES256GCM({ id: 'lanz', key: SECRET })
+    const encrypted = driver.encrypt({ username: 'lanz' }, { purpose: 'register' })
+
+    assert.deepEqual(driver.decrypt(encrypted, 'register'), { username: 'lanz' })
+  })
+
+  test('encrypt with options object containing both expiresIn and purpose', ({ assert }) => {
+    const driver = new AES256GCM({ id: 'lanz', key: SECRET })
+    const encrypted = driver.encrypt({ username: 'lanz' }, { expiresIn: '1h', purpose: 'register' })
+
+    assert.deepEqual(driver.decrypt(encrypted, 'register'), { username: 'lanz' })
+  })
+
+  test('backward compatibility: encrypt with positional arguments', ({ assert }) => {
     const driver = new AES256GCM({ id: 'lanz', key: SECRET })
     const encrypted = driver.encrypt({ username: 'lanz' }, undefined, 'register')
 

@@ -7,8 +7,8 @@
 
 import { createHash } from 'node:crypto'
 import * as errors from '../exceptions.ts'
-import type { BaseConfig, CypherText } from '../types/main.ts'
-import { type Secret } from '@poppinss/utils'
+import type { Secret } from '@poppinss/utils'
+import type { BaseConfig, CypherText, EncryptOptions } from '../types/main.ts'
 
 export abstract class BaseDriver {
   /**
@@ -62,6 +62,7 @@ export abstract class BaseDriver {
    * You can optionally define a purpose for which the value was encrypted and
    * mentioning a different purpose/no purpose during decrypt will fail.
    */
+  abstract encrypt(payload: any, options?: EncryptOptions): CypherText
   abstract encrypt(payload: any, expiresIn?: string | number, purpose?: string): CypherText
 
   /**

@@ -134,4 +134,25 @@ test.group('Encryption', () => {
     })
     assert.isNull(encryption.getMessageVerifier().unsign(signed))
   })
+
+  test('encrypt with options object containing purpose', ({ assert }) => {
+    const encryption = new Encryption({
+      driver: (key) => new ChaCha20Poly1305({ id: 'test', key }),
+      keys: [SECRET],
+    })
+
+    const encrypted = encryption.encrypt({ username: 'virk' }, { purpose: 'test' })
+    assert.deepEqual(encryption.decrypt(encrypted, 'test'), { username: 'virk' })
+    assert.isNull(encryption.decrypt(encrypted, 'wrong'))
+  })
+
+  test('encrypt with options object containing expiresIn and purpose', ({ assert }) => {
+    const encryption = new Encryption({
+      driver: (key) => new ChaCha20Poly1305({ id: 'test', key }),
+      keys: [SECRET],
+    })
+
+    const encrypted = encryption.encrypt({ username: 'virk' }, { expiresIn: '1h', purpose: 'test' })
+    assert.deepEqual(encryption.decrypt(encrypted, 'test'), { username: 'virk' })
+  })
 })

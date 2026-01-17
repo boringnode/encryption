@@ -6,7 +6,12 @@
  */
 
 import { MessageVerifier } from './message_verifier.ts'
-import type { CypherText, EncryptionConfig, EncryptionDriverContract } from './types/main.ts'
+import type {
+  CypherText,
+  EncryptionConfig,
+  EncryptionDriverContract,
+  EncryptOptions,
+} from './types/main.ts'
 
 /**
  * Encryption class that wraps a driver and manages multiple keys.
@@ -24,8 +29,25 @@ export class Encryption {
   /**
    * Encrypt a value using the first key
    */
-  encrypt(payload: any, expiresIn?: string | number, purpose?: string): CypherText {
-    return this.#drivers[0].encrypt(payload, expiresIn, purpose)
+  encrypt(payload: any, options?: EncryptOptions): CypherText
+  encrypt(payload: any, expiresIn?: string | number, purpose?: string): CypherText
+  encrypt(
+    payload: any,
+    expiresInOrOptions?: string | number | EncryptOptions,
+    purpose?: string
+  ): CypherText {
+    let expiresIn: string | number | undefined
+    let actualPurpose: string | undefined
+
+    if (typeof expiresInOrOptions === 'object' && expiresInOrOptions !== null) {
+      expiresIn = expiresInOrOptions.expiresIn
+      actualPurpose = expiresInOrOptions.purpose
+    } else {
+      expiresIn = expiresInOrOptions
+      actualPurpose = purpose
+    }
+
+    return this.#drivers[0].encrypt(payload, expiresIn, actualPurpose)
   }
 
   /**

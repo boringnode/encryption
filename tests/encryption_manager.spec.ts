@@ -118,4 +118,29 @@ test.group('Encryption manager', () => {
     const encrypted = manager.encrypt('hello world')
     assert.deepEqual(manager.decrypt(encrypted), 'hello world')
   })
+
+  test('encrypt with options object containing purpose', ({ assert }) => {
+    const manager = new EncryptionManager({
+      default: 'legacy',
+      list: {
+        legacy: chacha20poly1305({ id: 'nova', keys: [SECRET] }),
+      },
+    })
+
+    const encrypted = manager.encrypt('hello world', { purpose: 'test' })
+    assert.deepEqual(manager.decrypt(encrypted, 'test'), 'hello world')
+    assert.isNull(manager.decrypt(encrypted, 'wrong'))
+  })
+
+  test('encrypt with options object containing expiresIn and purpose', ({ assert }) => {
+    const manager = new EncryptionManager({
+      default: 'legacy',
+      list: {
+        legacy: chacha20poly1305({ id: 'nova', keys: [SECRET] }),
+      },
+    })
+
+    const encrypted = manager.encrypt('hello world', { expiresIn: '1h', purpose: 'test' })
+    assert.deepEqual(manager.decrypt(encrypted, 'test'), 'hello world')
+  })
 })

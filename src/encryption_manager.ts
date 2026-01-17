@@ -9,7 +9,7 @@ import { RuntimeException } from '@poppinss/utils/exception'
 import debug from './debug.ts'
 import { Encryption } from './encryption.ts'
 import type { MessageVerifier } from './message_verifier.ts'
-import type { CypherText, EncryptionConfig } from './types/main.ts'
+import type { CypherText, EncryptionConfig, EncryptOptions } from './types/main.ts'
 
 export class EncryptionManager<KnownEncrypters extends Record<string, EncryptionConfig>> {
   /**
@@ -75,8 +75,25 @@ export class EncryptionManager<KnownEncrypters extends Record<string, Encryption
     return this.use().getMessageVerifier()
   }
 
-  encrypt(payload: any, expiresIn?: string | number, purpose?: string): CypherText {
-    return this.use().encrypt(payload, expiresIn, purpose)
+  encrypt(payload: any, options?: EncryptOptions): CypherText
+  encrypt(payload: any, expiresIn?: string | number, purpose?: string): CypherText
+  encrypt(
+    payload: any,
+    expiresInOrOptions?: string | number | EncryptOptions,
+    purpose?: string
+  ): CypherText {
+    let expiresIn: string | number | undefined
+    let actualPurpose: string | undefined
+
+    if (typeof expiresInOrOptions === 'object' && expiresInOrOptions !== null) {
+      expiresIn = expiresInOrOptions.expiresIn
+      actualPurpose = expiresInOrOptions.purpose
+    } else {
+      expiresIn = expiresInOrOptions
+      actualPurpose = purpose
+    }
+
+    return this.use().encrypt(payload, expiresIn, actualPurpose)
   }
 
   decrypt<T extends any>(value: string, purpose?: string): T | null {
