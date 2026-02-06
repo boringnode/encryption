@@ -6,6 +6,7 @@
  */
 
 import { MessageVerifier } from './message_verifier.ts'
+import * as errors from './exceptions.ts'
 import type {
   CypherText,
   EncryptionConfig,
@@ -22,6 +23,10 @@ export class Encryption {
   #verifier: MessageVerifier
 
   constructor(config: EncryptionConfig) {
+    if (config.keys.length === 0) {
+      throw new errors.E_MISSING_ENCRYPTER_KEYS()
+    }
+
     this.#drivers = config.keys.map((key) => config.driver(key))
     this.#verifier = new MessageVerifier(config.keys)
   }

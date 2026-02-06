@@ -14,6 +14,17 @@ const SECRET = 'averylongradom32charactersstring'
 const SECRET_2 = 'anotherlongradom32characterskey!'
 
 test.group('Encryption', () => {
+  test('fail when keys array is empty', ({ assert }) => {
+    assert.throws(
+      () =>
+        new Encryption({
+          driver: (key) => new ChaCha20Poly1305({ id: 'test', key }),
+          keys: [],
+        }),
+      'Missing keys. At least one key is required to encrypt values'
+    )
+  })
+
   test('encrypt and decrypt using the driver', ({ assert }) => {
     const encryption = new Encryption({
       driver: (key) => new ChaCha20Poly1305({ id: 'test', key }),

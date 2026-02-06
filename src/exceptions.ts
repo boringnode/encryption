@@ -17,6 +17,11 @@ export const E_MISSING_ENCRYPTER_KEY = createError(
   'E_MISSING_ENCRYPTER_KEY'
 )
 
+export const E_MISSING_ENCRYPTER_KEYS = createError(
+  'Missing keys. At least one key is required to encrypt values',
+  'E_MISSING_ENCRYPTER_KEYS'
+)
+
 export const E_MISSING_ENCRYPTER_ID = createError(
   'Missing id. The id is required to encrypt values',
   'E_MISSING_ENCRYPTER_ID'

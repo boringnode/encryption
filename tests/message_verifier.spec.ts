@@ -12,6 +12,13 @@ import { base64UrlDecode } from '../src/base64.ts'
 const SECRET = 'averylongradom32charactersstring'
 
 test.group('MessageVerifier', () => {
+  test('fail when secrets array is empty', ({ assert }) => {
+    assert.throws(
+      () => new MessageVerifier([]),
+      'Missing keys. At least one key is required to encrypt values'
+    )
+  })
+
   test('disallow signing null and undefined values', ({ assert }) => {
     const messageVerifier = new MessageVerifier([SECRET])
 

@@ -10,6 +10,7 @@ import { MessageBuilder, type Secret } from '@poppinss/utils'
 import { RuntimeException } from '@poppinss/utils/exception'
 import { base64UrlEncode, base64UrlDecode } from './base64.ts'
 import { Hmac } from './hmac.ts'
+import * as errors from './exceptions.ts'
 
 /**
  * Message verifier is similar to the encryption. However, the actual payload
@@ -32,6 +33,10 @@ export class MessageVerifier {
   #separator = '.'
 
   constructor(secrets: (string | Secret<string>)[]) {
+    if (secrets.length === 0) {
+      throw new errors.E_MISSING_ENCRYPTER_KEYS()
+    }
+
     this.#cryptoKeys = secrets.map((s) =>
       createHash('sha256')
         .update(typeof s === 'string' ? s : s.release())
