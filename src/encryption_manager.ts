@@ -58,6 +58,12 @@ export class EncryptionManager<KnownEncrypters extends Record<string, Encryption
       return cachedEncryption
     }
 
+    if (!Object.hasOwn(this.#config.list, encrypterToUse)) {
+      throw new RuntimeException(
+        `Cannot create encryption instance. Encryption "${String(encrypterToUse)}" is not defined in the config`
+      )
+    }
+
     const encrypterConfig = this.#config.list[encrypterToUse]
 
     /**

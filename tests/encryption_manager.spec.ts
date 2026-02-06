@@ -71,6 +71,21 @@ test.group('Encryption manager', () => {
     )
   })
 
+  test('fail when encrypter is not configured', ({ assert }) => {
+    const manager = new EncryptionManager({
+      default: 'legacy',
+      list: {
+        legacy: chacha20poly1305({ id: 'nova', keys: [SECRET] }),
+      },
+    })
+
+    assert.throws(
+      // @ts-expect-error testing runtime guard
+      () => manager.use('missing'),
+      'Cannot create encryption instance. Encryption "missing" is not defined in the config'
+    )
+  })
+
   test('use message verifier', ({ assert }) => {
     const manager = new EncryptionManager({
       default: 'legacy',
