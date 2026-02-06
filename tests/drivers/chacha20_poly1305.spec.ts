@@ -34,6 +34,20 @@ test.group('ChaCha20-Poly1305', () => {
     )
   })
 
+  test('fail when id contains separator', ({ assert }) => {
+    assert.throws(
+      () => new ChaCha20Poly1305({ id: 'lan.z', key: SECRET }),
+      'Invalid id. The id must be a non-empty string and cannot contain "."'
+    )
+  })
+
+  test('fail when id is empty', ({ assert }) => {
+    assert.throws(
+      () => new ChaCha20Poly1305({ id: '', key: SECRET }),
+      'Invalid id. The id must be a non-empty string and cannot contain "."'
+    )
+  })
+
   test('encrypt value', ({ assert }) => {
     const driver = new ChaCha20Poly1305({ id: 'lanz', key: SECRET })
 

@@ -27,6 +27,7 @@ export abstract class BaseDriver {
 
   protected constructor(config: BaseConfig) {
     const key = this.#validateAndGetSecret(config.key)
+    this.#validateId(config.id)
     this.cryptoKey = createHash('sha256').update(key).digest()
 
     const rawBlindIndexKey = hkdfSync(
@@ -55,6 +56,19 @@ export abstract class BaseDriver {
     }
 
     return revealedSecret
+  }
+
+  /**
+   * Validates encrypter id format when provided.
+   */
+  #validateId(id?: string) {
+    if (typeof id !== 'string') {
+      return
+    }
+
+    if (id.trim().length === 0 || id.includes(this.separator)) {
+      throw new errors.E_INVALID_ENCRYPTER_ID()
+    }
   }
 
   protected computeReturns(values: string[]) {

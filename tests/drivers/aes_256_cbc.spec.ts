@@ -34,6 +34,20 @@ test.group('AES-256-CBC', () => {
     )
   })
 
+  test('fail when id contains separator', ({ assert }) => {
+    assert.throws(
+      () => new AES256CBC({ id: 'lan.z', key: SECRET }),
+      'Invalid id. The id must be a non-empty string and cannot contain "."'
+    )
+  })
+
+  test('fail when id is empty', ({ assert }) => {
+    assert.throws(
+      () => new AES256CBC({ id: '', key: SECRET }),
+      'Invalid id. The id must be a non-empty string and cannot contain "."'
+    )
+  })
+
   test('encrypt value', ({ assert }) => {
     const encryption = new AES256CBC({ id: 'lanz', key: SECRET })
     assert.notEqual(encryption.encrypt('hello-world'), 'hello-world')

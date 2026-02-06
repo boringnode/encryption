@@ -45,6 +45,8 @@ const encryption = new Encryption(
 )
 ```
 
+`id` must be a non-empty string and cannot contain `.`.
+
 ### 2. Encrypt & Decrypt
 
 ```typescript

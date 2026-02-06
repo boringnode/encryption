@@ -34,6 +34,20 @@ test.group('AES-256-GCM', () => {
     )
   })
 
+  test('fail when id contains separator', ({ assert }) => {
+    assert.throws(
+      () => new AES256GCM({ id: 'lan.z', key: SECRET }),
+      'Invalid id. The id must be a non-empty string and cannot contain "."'
+    )
+  })
+
+  test('fail when id is empty', ({ assert }) => {
+    assert.throws(
+      () => new AES256GCM({ id: '', key: SECRET }),
+      'Invalid id. The id must be a non-empty string and cannot contain "."'
+    )
+  })
+
   test('encrypt value', ({ assert }) => {
     const driver = new AES256GCM({ id: 'lanz', key: SECRET })
 

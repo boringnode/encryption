@@ -34,6 +34,20 @@ test.group('AES-SIV', () => {
     )
   })
 
+  test('fail when id contains separator', ({ assert }) => {
+    assert.throws(
+      () => new AESSIV({ id: 'lan.z', key: SECRET }),
+      'Invalid id. The id must be a non-empty string and cannot contain "."'
+    )
+  })
+
+  test('fail when id is empty', ({ assert }) => {
+    assert.throws(
+      () => new AESSIV({ id: '', key: SECRET }),
+      'Invalid id. The id must be a non-empty string and cannot contain "."'
+    )
+  })
+
   test('accept single key in deterministic driver config', ({ assert }) => {
     const config = aessiv({ id: 'lanz', key: SECRET })
     assert.equal(config.keys.length, 1)
