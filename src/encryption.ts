@@ -63,6 +63,22 @@ export class Encryption {
     return null
   }
 
+  blindIndex(payload: any, purpose: string): string {
+    return this.#drivers[0].blindIndex(payload, purpose)
+  }
+
+  blindIndexes(payload: any, purpose: string): string[] {
+    const indexes = new Set<string>()
+
+    for (const driver of this.#drivers) {
+      for (const index of driver.blindIndexes(payload, purpose)) {
+        indexes.add(index)
+      }
+    }
+
+    return [...indexes]
+  }
+
   /**
    * Get the message verifier instance
    */

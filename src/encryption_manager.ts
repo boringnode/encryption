@@ -99,4 +99,12 @@ export class EncryptionManager<KnownEncrypters extends Record<string, Encryption
   decrypt<T extends any>(value: string, purpose?: string): T | null {
     return this.use().decrypt(value, purpose)
   }
+
+  blindIndex(payload: any, purpose: string): string {
+    return this.use().blindIndex(payload, purpose)
+  }
+
+  blindIndexes(payload: any, purpose: string): string[] {
+    return this.use().blindIndexes(payload, purpose)
+  }
 }

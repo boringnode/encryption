@@ -155,4 +155,54 @@ test.group('Encryption', () => {
     const encrypted = encryption.encrypt({ username: 'virk' }, { expiresIn: '1h', purpose: 'test' })
     assert.deepEqual(encryption.decrypt(encrypted, 'test'), { username: 'virk' })
   })
+
+  test('compute blind index using first key', ({ assert }) => {
+    const encryption = new Encryption({
+      driver: (key) => new ChaCha20Poly1305({ id: 'test', key }),
+      keys: [SECRET, SECRET_2],
+    })
+
+    const blindIndex = encryption.blindIndex('foo@example.com', 'users.email')
+
+    const singleKeyEncryption = new Encryption({
+      driver: (key) => new ChaCha20Poly1305({ id: 'test', key }),
+      keys: [SECRET],
+    })
+
+    assert.equal(blindIndex, singleKeyEncryption.blindIndex('foo@example.com', 'users.email'))
+  })
+
+  test('compute blind indexes for all keys', ({ assert }) => {
+    const encryption = new Encryption({
+      driver: (key) => new ChaCha20Poly1305({ id: 'test', key }),
+      keys: [SECRET, SECRET_2],
+    })
+
+    const indexes = encryption.blindIndexes('foo@example.com', 'users.email')
+    assert.lengthOf(indexes, 2)
+
+    const singleKeyEncryption1 = new Encryption({
+      driver: (key) => new ChaCha20Poly1305({ id: 'test', key }),
+      keys: [SECRET],
+    })
+    const singleKeyEncryption2 = new Encryption({
+      driver: (key) => new ChaCha20Poly1305({ id: 'test', key }),
+      keys: [SECRET_2],
+    })
+
+    assert.include(indexes, singleKeyEncryption1.blindIndex('foo@example.com', 'users.email'))
+    assert.include(indexes, singleKeyEncryption2.blindIndex('foo@example.com', 'users.email'))
+  })
+
+  test('fail when blind index purpose is missing', ({ assert }) => {
+    const encryption = new Encryption({
+      driver: (key) => new ChaCha20Poly1305({ id: 'test', key }),
+      keys: [SECRET],
+    })
+
+    assert.throws(
+      () => encryption.blindIndex('foo@example.com', ''),
+      'Blind index requires a non-empty purpose'
+    )
+  })
 })

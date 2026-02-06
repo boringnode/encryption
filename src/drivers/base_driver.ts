@@ -5,9 +5,10 @@
  * @copyright Boring Node
  */
 
-import { createHash } from 'node:crypto'
+import { createHash, createHmac, hkdfSync } from 'node:crypto'
+import { MessageBuilder, type Secret } from '@poppinss/utils'
 import * as errors from '../exceptions.ts'
-import type { Secret } from '@poppinss/utils'
+import { base64UrlEncode } from '../base64.ts'
 import type { BaseConfig, CypherText, EncryptOptions } from '../types/main.ts'
 
 export abstract class BaseDriver {
@@ -16,6 +17,7 @@ export abstract class BaseDriver {
    * from the user provided secret.
    */
   cryptoKey: Buffer
+  #blindIndexKey: Buffer
 
   /**
    * Use `dot` as a separator for joining encrypted value, iv and the
@@ -26,6 +28,17 @@ export abstract class BaseDriver {
   protected constructor(config: BaseConfig) {
     const key = this.#validateAndGetSecret(config.key)
     this.cryptoKey = createHash('sha256').update(key).digest()
+
+    const rawBlindIndexKey = hkdfSync(
+      'sha256',
+      this.cryptoKey,
+      Buffer.alloc(0),
+      Buffer.from(`blind-index:${config.id || 'default'}`),
+      32
+    )
+    this.#blindIndexKey = Buffer.isBuffer(rawBlindIndexKey)
+      ? rawBlindIndexKey
+      : Buffer.from(rawBlindIndexKey)
   }
 
   /**
@@ -46,6 +59,26 @@ export abstract class BaseDriver {
 
   protected computeReturns(values: string[]) {
     return values.join(this.separator) as CypherText
+  }
+
+  blindIndex(payload: any, purpose: string): string {
+    if (typeof purpose !== 'string' || purpose.trim().length === 0) {
+      throw new errors.E_BLIND_INDEX_PURPOSE_REQUIRED()
+    }
+
+    const rawPayload = new MessageBuilder().build(payload)
+    const payloadBuffer = Buffer.isBuffer(rawPayload) ? rawPayload : Buffer.from(rawPayload)
+    const indexPayload = Buffer.concat([
+      Buffer.from(purpose),
+      Buffer.from(this.separator),
+      payloadBuffer,
+    ])
+
+    return base64UrlEncode(createHmac('sha256', this.#blindIndexKey).update(indexPayload).digest())
+  }
+
+  blindIndexes(payload: any, purpose: string): string[] {
+    return [this.blindIndex(payload, purpose)]
   }
 
   /**

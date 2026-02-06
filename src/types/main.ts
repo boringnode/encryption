@@ -42,6 +42,16 @@ export interface EncryptionDriverContract {
    * Decrypt value and verify it against a purpose
    */
   decrypt<T extends any>(value: string, purpose?: string): T | null
+
+  /**
+   * Compute a deterministic blind index for equality lookups.
+   */
+  blindIndex(payload: any, purpose: string): string
+
+  /**
+   * Compute blind indexes for all keys used by the driver.
+   */
+  blindIndexes(payload: any, purpose: string): string[]
 }
 
 /**
@@ -53,6 +63,7 @@ export type ManagerDriverFactory = () => EncryptionDriverContract
 
 export interface BaseConfig {
   key: string | Secret<string>
+  id?: string
 }
 
 export interface LegacyConfig extends BaseConfig {}

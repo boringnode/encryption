@@ -26,3 +26,8 @@ export const E_DETERMINISTIC_DRIVER_EXPIRES_IN_NOT_SUPPORTED = createError(
   'Deterministic encryption does not support expiresIn',
   'E_DETERMINISTIC_DRIVER_EXPIRES_IN_NOT_SUPPORTED'
 )
+
+export const E_BLIND_INDEX_PURPOSE_REQUIRED = createError(
+  'Blind index requires a non-empty purpose',
+  'E_BLIND_INDEX_PURPOSE_REQUIRED'
+)

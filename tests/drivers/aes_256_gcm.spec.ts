@@ -176,4 +176,37 @@ test.group('AES-256-GCM', () => {
 
     assert.deepEqual(driver.decrypt(encrypted, 'register'), { username: 'lanz' })
   })
+
+  test('create deterministic blind index for the same value and purpose', ({ assert }) => {
+    const driver = new AES256GCM({ id: 'lanz', key: SECRET })
+    const one = driver.blindIndex('foo@example.com', 'users.email')
+    const two = driver.blindIndex('foo@example.com', 'users.email')
+
+    assert.equal(one, two)
+  })
+
+  test('return different blind index when purpose changes', ({ assert }) => {
+    const driver = new AES256GCM({ id: 'lanz', key: SECRET })
+    const one = driver.blindIndex('foo@example.com', 'users.email')
+    const two = driver.blindIndex('foo@example.com', 'users.login')
+
+    assert.notEqual(one, two)
+  })
+
+  test('return blind indexes list', ({ assert }) => {
+    const driver = new AES256GCM({ id: 'lanz', key: SECRET })
+    const indexes = driver.blindIndexes('foo@example.com', 'users.email')
+
+    assert.lengthOf(indexes, 1)
+    assert.equal(indexes[0], driver.blindIndex('foo@example.com', 'users.email'))
+  })
+
+  test('fail when blind index purpose is missing', ({ assert }) => {
+    const driver = new AES256GCM({ id: 'lanz', key: SECRET })
+
+    assert.throws(
+      () => driver.blindIndex('foo@example.com', ''),
+      'Blind index requires a non-empty purpose'
+    )
+  })
 })

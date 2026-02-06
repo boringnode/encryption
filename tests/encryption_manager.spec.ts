@@ -143,4 +143,45 @@ test.group('Encryption manager', () => {
     const encrypted = manager.encrypt('hello world', { expiresIn: '1h', purpose: 'test' })
     assert.deepEqual(manager.decrypt(encrypted, 'test'), 'hello world')
   })
+
+  test('compute blind index using the default driver', ({ assert }) => {
+    const manager = new EncryptionManager({
+      default: 'legacy',
+      list: {
+        legacy: chacha20poly1305({ id: 'nova', keys: [SECRET] }),
+      },
+    })
+
+    const index = manager.blindIndex('foo@example.com', 'users.email')
+    assert.isString(index)
+  })
+
+  test('compute blind indexes for all keys', ({ assert }) => {
+    const manager = new EncryptionManager({
+      default: 'legacy',
+      list: {
+        legacy: chacha20poly1305({
+          id: 'nova',
+          keys: [SECRET, 'anotherlongradom32characterskey!'],
+        }),
+      },
+    })
+
+    const indexes = manager.blindIndexes('foo@example.com', 'users.email')
+    assert.lengthOf(indexes, 2)
+  })
+
+  test('fail when blind index purpose is missing', ({ assert }) => {
+    const manager = new EncryptionManager({
+      default: 'legacy',
+      list: {
+        legacy: chacha20poly1305({ id: 'nova', keys: [SECRET] }),
+      },
+    })
+
+    assert.throws(
+      () => manager.blindIndex('foo@example.com', ''),
+      'Blind index requires a non-empty purpose'
+    )
+  })
 })

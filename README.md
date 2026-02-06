@@ -25,6 +25,7 @@ npm install @boringnode/encryption
 - **Deterministic Encryption**: AES-SIV driver for equality queries
 - **Purpose-Bound Encryption**: Ensure encrypted values are used for their intended purpose
 - **Expiration Support**: Set time-to-live on encrypted values
+- **Blind Indexes**: Deterministic indexes for equality queries
 - **Message Verification**: Sign data without encrypting (HMAC-based)
 - **Type-Safe**: Full TypeScript support with typed payloads
 
@@ -179,6 +180,32 @@ const token = encryption.encrypt({ userId: 1 }, '7d')
 
 // After expiration, decrypt returns null
 encryption.decrypt(expiredToken) // => null
+```
+
+## Blind Indexes
+
+Blind indexes are deterministic hashes used for equality queries:
+
+```typescript
+const index = encryption.blindIndex('foo@example.com', 'users.email')
+```
+
+When rotating keys, query using all blind indexes:
+
+```typescript
+const indexes = encryption.blindIndexes('foo@example.com', 'users.email')
+// Use SQL: WHERE email_index IN (...)
+```
+
+Rules:
+
+- `purpose` is required and should identify the field/context (`users.email`, `users.ssn`, ...).
+- Matching is exact-bytes (no implicit normalization).
+- Prefer normalized primitive values for blind indexes (`string`/`number`/`boolean`/ISO date).
+- For structured objects, normalize/canonicalize before indexing (for example, map object -> stable string yourself).
+
+```typescript
+const emailIndex = encryption.blindIndex(email.trim().toLowerCase(), 'users.email')
 ```
 
 ## Message Verifier
