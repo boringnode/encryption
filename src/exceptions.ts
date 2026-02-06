@@ -21,3 +21,8 @@ export const E_MISSING_ENCRYPTER_ID = createError(
   'Missing id. The id is required to encrypt values',
   'E_MISSING_ENCRYPTER_ID'
 )
+
+export const E_DETERMINISTIC_DRIVER_EXPIRES_IN_NOT_SUPPORTED = createError(
+  'Deterministic encryption does not support expiresIn',
+  'E_DETERMINISTIC_DRIVER_EXPIRES_IN_NOT_SUPPORTED'
+)

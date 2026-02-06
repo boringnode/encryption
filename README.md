@@ -20,8 +20,9 @@ npm install @boringnode/encryption
 
 ## Features
 
-- **Multiple Algorithms**: ChaCha20-Poly1305, AES-256-GCM, AES-256-CBC
+- **Multiple Algorithms**: ChaCha20-Poly1305, AES-256-GCM, AES-256-CBC, AES-SIV
 - **Key Rotation**: Encrypt with new keys, decrypt with old ones
+- **Deterministic Encryption**: AES-SIV driver for equality queries
 - **Purpose-Bound Encryption**: Ensure encrypted values are used for their intended purpose
 - **Expiration Support**: Set time-to-live on encrypted values
 - **Message Verification**: Sign data without encrypting (HMAC-based)
@@ -106,6 +107,24 @@ const config = aes256cbc({
   keys: ['your-32-character-secret-key-here'],
 })
 ```
+
+### AES-SIV (deterministic)
+
+Deterministic encryption for direct equality lookups on encrypted columns.
+
+```typescript
+import { aessiv } from '@boringnode/encryption/drivers/aes_siv'
+
+const config = aessiv({
+  id: 'app',
+  key: 'your-32-character-secret-key-here',
+})
+```
+
+Notes:
+
+- `expiresIn` is not supported with deterministic encryption.
+- Key rotation is not automatic for deterministic ciphertexts. Use an explicit migration/backfill strategy.
 
 ## Key Rotation
 

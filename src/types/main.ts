@@ -7,7 +7,7 @@
 
 import { type Secret } from '@poppinss/utils'
 
-export type CypherText = `${string}.${string}.${string}.${string}`
+export type CypherText = `${string}.${string}.${string}` | `${string}.${string}.${string}.${string}`
 
 /**
  * Options for the encrypt method
@@ -63,6 +63,9 @@ export interface AES256GCMConfig extends BaseConfig {
   id: string
 }
 export interface ChaCha20Poly1305Config extends BaseConfig {
+  id: string
+}
+export interface AESSIVConfig extends BaseConfig {
   id: string
 }
 
