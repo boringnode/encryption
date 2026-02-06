@@ -232,7 +232,7 @@ if (result === null) {
 }
 ```
 
-[gh-workflow-image]: https://img.shields.io/github/actions/workflow/status/boringnode/encryption/checks.yml?branch=main&style=for-the-badge
+[gh-workflow-image]: https://img.shields.io/github/actions/workflow/status/boringnode/encryption/checks.yml?branch=0.x&style=for-the-badge
 [gh-workflow-url]: https://github.com/boringnode/encryption/actions/workflows/checks.yml
 [npm-image]: https://img.shields.io/npm/v/@boringnode/encryption.svg?style=for-the-badge&logo=npm
 [npm-url]: https://www.npmjs.com/package/@boringnode/encryption
