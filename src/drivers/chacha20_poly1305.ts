@@ -56,7 +56,9 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
       Buffer.from(`chacha20-poly1305:v1:${config.id}`),
       32
     )
-    this.#encryptionKey = Buffer.isBuffer(encryptionKey) ? encryptionKey : Buffer.from(encryptionKey)
+    this.#encryptionKey = Buffer.isBuffer(encryptionKey)
+      ? encryptionKey
+      : Buffer.from(encryptionKey)
   }
 
   /**

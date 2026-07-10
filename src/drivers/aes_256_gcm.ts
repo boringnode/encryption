@@ -56,7 +56,9 @@ export class AES256GCM extends BaseDriver implements EncryptionDriverContract {
       Buffer.from(`aes-256-gcm:v1:${config.id}`),
       32
     )
-    this.#encryptionKey = Buffer.isBuffer(encryptionKey) ? encryptionKey : Buffer.from(encryptionKey)
+    this.#encryptionKey = Buffer.isBuffer(encryptionKey)
+      ? encryptionKey
+      : Buffer.from(encryptionKey)
   }
 
   /**
