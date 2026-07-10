@@ -42,11 +42,11 @@
     "@japa/runner": "^5.3.0",
     "@poppinss/ts-exec": "^1.4.4",
     "@swc/core": "^1.15.43",
-    "@types/node": "^22.19.9",
+    "@types/node": "^22.20.0",
     "c8": "^11.0.0",
     "del-cli": "^7.0.0",
     "eslint": "^10.6.0",
-    "prettier": "^3.9.1",
+    "prettier": "^3.9.4",
     "release-it": "^20.2.1",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3"
