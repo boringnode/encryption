@@ -32,4 +32,9 @@ test.group('base64', () => {
 
     assert.isFalse(token.endsWith('='))
   })
+
+  test('reject non-canonical base64url values', ({ assert }) => {
+    assert.isNull(base64UrlDecode('aGVsbG8='))
+    assert.isNull(base64UrlDecode('aGVsbG8!'))
+  })
 })

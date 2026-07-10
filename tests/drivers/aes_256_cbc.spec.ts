@@ -98,7 +98,7 @@ test.group('AES-256-CBC', () => {
 
     assert.deepEqual(
       driver.decrypt(
-        'lanz.gA6W70l7mCUpGW7BJPUhgAhpLRSmbh8qV8oRM62d7Jg.jQmpmEF3_z4a7N6KZ0HdxQ.WIIOA2Rm1wejdioEecWJAUvXC_3gqqYrsLvAvj5eaQc.4oTirrLj_Q9ituhhcDcx6LOTGYTWKFviDvc8zcbDtlU'
+        'lanz.gA6W70l7mCUpGW7BJPUhgAhpLRSmbh8qV8oRM62d7Jg.jQmpmEF3_z4a7N6KZ0HdxQ.WIIOA2Rm1wejdioEecWJAUvXC_3gqqYrsLvAvj5eaQc'
       ),
       { username: 'lanz' }
     )
@@ -114,6 +114,13 @@ test.group('AES-256-CBC', () => {
     const driver = new AES256CBC({ id: 'lanz', key: SECRET })
 
     assert.isNull(driver.decrypt('lanz.aes256cbc.foo.bar.baz'))
+  })
+
+  test('return null when an unsigned segment is appended', ({ assert }) => {
+    const driver = new AES256CBC({ id: 'lanz', key: SECRET })
+    const encrypted = driver.encrypt({ username: 'lanz' })
+
+    assert.isNull(driver.decrypt(`${encrypted}.unsigned`))
   })
 
   test('return null when hash is tampered', ({ assert }) => {

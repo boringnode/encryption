@@ -124,7 +124,12 @@ export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
      * Make sure the encrypted value is in the correct format.
      * i.e.: [id].[encrypted value].[iv].[mac]
      */
-    const [id, cipherEncoded, ivEncoded, macEncoded] = value.split(this.separator)
+    const parts = value.split(this.separator)
+    if (parts.length !== 4) {
+      return null
+    }
+
+    const [id, cipherEncoded, ivEncoded, macEncoded] = parts
     if (!id || !cipherEncoded || !ivEncoded || !macEncoded) {
       return null
     }
@@ -148,7 +153,7 @@ export class AES256CBC extends BaseDriver implements EncryptionDriverContract {
      * Make sure we are able to decode the iv
      */
     const iv = base64UrlDecode(ivEncoded)
-    if (!iv) {
+    if (!iv || iv.length !== 16) {
       return null
     }
 

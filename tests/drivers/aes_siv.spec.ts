@@ -96,6 +96,15 @@ test.group('AES-SIV', () => {
     assert.deepEqual(driver.decrypt(encrypted), { username: 'lanz' })
   })
 
+  test('decrypt legacy encrypted value with purpose', ({ assert }) => {
+    const driver = new AESSIV({ id: 'lanz', key: SECRET })
+    const encrypted = 'lanz.rd23r-Gys22lxk2MK--5X6z2gzmgwoWlmYH97AGqoA.i5aElMP06LmgWttUcWuLUA'
+
+    assert.deepEqual(driver.decrypt(encrypted, 'login'), { username: 'lanz' })
+    assert.isNull(driver.decrypt(encrypted))
+    assert.isNull(driver.decrypt(encrypted, 'register'))
+  })
+
   test('return null when decrypting not the same id', ({ assert }) => {
     const driver = new AESSIV({ id: 'lanz', key: SECRET })
     const encrypted = driver.encrypt({ username: 'lanz' })
