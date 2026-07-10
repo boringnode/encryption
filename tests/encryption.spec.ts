@@ -69,6 +69,17 @@ test.group('Encryption', () => {
     assert.deepEqual(newEncryption.decrypt(encryptedWithOldKey), { username: 'virk' })
   })
 
+  test('decrypt legacy encrypted values after key rotation', ({ assert }) => {
+    const encryption = new Encryption({
+      driver: (key) => new ChaCha20Poly1305({ id: 'test', key }),
+      keys: [SECRET, SECRET_2],
+    })
+    const encrypted =
+      'test.3czu1xOsntEyxF5MFs1WaK6OcMg9CdTquXajj75lqw.GBkaGxwdHh8gISIj.VMIcMX4dYmYV6QUuVRD7UQ'
+
+    assert.deepEqual(encryption.decrypt(encrypted, 'login'), { username: 'lanz' })
+  })
+
   test('return null when none of the keys can decrypt', ({ assert }) => {
     const thirdKey = 'yetanotherlongrandomcharacters!!'
 

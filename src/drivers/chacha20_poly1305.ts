@@ -5,7 +5,7 @@
  * @copyright Boring Node
  */
 
-import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto'
+import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from 'node:crypto'
 import { MessageBuilder, type Secret } from '@poppinss/utils'
 import { BaseDriver } from './base_driver.ts'
 import * as errors from '../exceptions.ts'
@@ -32,6 +32,11 @@ export function chacha20poly1305(config: ChaCha20Poly1305DriverConfig) {
 
 export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverContract {
   #config: ChaCha20Poly1305Config
+  #encryptionKey: Buffer
+
+  static readonly #VERSION_PREFIX = 'v1:'
+  static readonly #IV_LENGTH = 12
+  static readonly #AUTH_TAG_LENGTH = 16
 
   constructor(config: ChaCha20Poly1305Config) {
     super(config)
@@ -41,6 +46,17 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
     if (typeof config.id !== 'string') {
       throw new errors.E_MISSING_ENCRYPTER_ID()
     }
+
+    // Versioned ciphertexts use an algorithm and id-specific key. Unprefixed values
+    // continue to use the legacy key during decryption for data migration.
+    const encryptionKey = hkdfSync(
+      'sha256',
+      this.cryptoKey,
+      Buffer.alloc(0),
+      Buffer.from(`chacha20-poly1305:v1:${config.id}`),
+      32
+    )
+    this.#encryptionKey = Buffer.isBuffer(encryptionKey) ? encryptionKey : Buffer.from(encryptionKey)
   }
 
   /**
@@ -78,13 +94,13 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
     /**
      * Using a random string as the iv for generating unpredictable values
      */
-    const iv = randomBytes(12)
+    const iv = randomBytes(ChaCha20Poly1305.#IV_LENGTH)
 
     /**
      * Creating cipher
      */
-    const cipher = createCipheriv('chacha20-poly1305', this.cryptoKey, iv, {
-      authTagLength: 16,
+    const cipher = createCipheriv('chacha20-poly1305', this.#encryptionKey, iv, {
+      authTagLength: ChaCha20Poly1305.#AUTH_TAG_LENGTH,
     })
 
     if (actualPurpose) {
@@ -107,7 +123,7 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
 
     return this.computeReturns([
       this.#config.id,
-      base64UrlEncode(cipherText),
+      `${ChaCha20Poly1305.#VERSION_PREFIX}${base64UrlEncode(cipherText)}`,
       base64UrlEncode(iv),
       base64UrlEncode(tag),
     ])
@@ -125,7 +141,12 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
      * Make sure the encrypted value is in the correct format.
      * i.e.: [id].[encrypted value].[iv].[tag]
      */
-    const [id, cipherEncoded, ivEncoded, tagEncoded] = value.split(this.separator)
+    const parts = value.split(this.separator)
+    if (parts.length !== 4) {
+      return null
+    }
+
+    const [id, cipherEncoded, ivEncoded, tagEncoded] = parts
     if (!id || !cipherEncoded || !ivEncoded || !tagEncoded) {
       return null
     }
@@ -140,7 +161,11 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
     /**
      * Make sure we are able to decode the encrypted value
      */
-    const cipherText = base64UrlDecode(cipherEncoded)
+    const isCurrentVersion = cipherEncoded.startsWith(ChaCha20Poly1305.#VERSION_PREFIX)
+    const encodedCipherText = isCurrentVersion
+      ? cipherEncoded.slice(ChaCha20Poly1305.#VERSION_PREFIX.length)
+      : cipherEncoded
+    const cipherText = base64UrlDecode(encodedCipherText)
     if (!cipherText) {
       return null
     }
@@ -149,7 +174,7 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
      * Make sure we are able to decode the iv
      */
     const iv = base64UrlDecode(ivEncoded)
-    if (!iv) {
+    if (!iv || iv.length !== ChaCha20Poly1305.#IV_LENGTH) {
       return null
     }
 
@@ -157,7 +182,7 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
      * Make sure we are able to decode the tag
      */
     const tag = base64UrlDecode(tagEncoded)
-    if (!tag) {
+    if (!tag || tag.length !== ChaCha20Poly1305.#AUTH_TAG_LENGTH) {
       return null
     }
 
@@ -166,9 +191,14 @@ export class ChaCha20Poly1305 extends BaseDriver implements EncryptionDriverCont
      * to avoid leaking sensitive information
      */
     try {
-      const decipher = createDecipheriv('chacha20-poly1305', this.cryptoKey, iv, {
-        authTagLength: 16,
-      })
+      const decipher = createDecipheriv(
+        'chacha20-poly1305',
+        isCurrentVersion ? this.#encryptionKey : this.cryptoKey,
+        iv,
+        {
+          authTagLength: ChaCha20Poly1305.#AUTH_TAG_LENGTH,
+        }
+      )
 
       if (purpose) {
         decipher.setAAD(Buffer.from(purpose), { plaintextLength: Buffer.byteLength(purpose) })

@@ -105,6 +105,16 @@ test.group('AES-256-GCM', () => {
     )
   })
 
+  test('decrypt legacy encrypted value with purpose', ({ assert }) => {
+    const driver = new AES256GCM({ id: 'lanz', key: SECRET })
+    const encrypted =
+      'lanz.E6uh6HnxtJ18g_DRHXSp9-36KGqqlvYsnxqLslhw5w.AAECAwQFBgcICQoL.x0Cu8lvVZoTpnzXIYhUG5g'
+
+    assert.deepEqual(driver.decrypt(encrypted, 'login'), { username: 'lanz' })
+    assert.isNull(driver.decrypt(encrypted))
+    assert.isNull(driver.decrypt(encrypted, 'register'))
+  })
+
   test('return null when value is in invalid format', ({ assert }) => {
     const driver = new AES256GCM({ id: 'lanz', key: SECRET })
 
@@ -129,6 +139,30 @@ test.group('AES-256-GCM', () => {
     const driver = new AES256GCM({ id: 'lanz', key: SECRET })
 
     assert.isNull(driver.decrypt(token))
+  })
+
+  test('return null when authentication tag is truncated', ({ assert }) => {
+    const driver = new AES256GCM({ id: 'lanz', key: SECRET })
+    const encrypted = driver.encrypt({ username: 'lanz' })
+    const [id, cipherText, iv, tag] = encrypted.split('.')
+
+    assert.isNull(driver.decrypt(`${id}.${cipherText}.${iv}.${tag.slice(0, 6)}`))
+  })
+
+  test('return null when an unsigned segment is appended', ({ assert }) => {
+    const driver = new AES256GCM({ id: 'lanz', key: SECRET })
+    const encrypted = driver.encrypt({ username: 'lanz' })
+
+    assert.isNull(driver.decrypt(`${encrypted}.unsigned`))
+  })
+
+  test('bind encrypted values to their encrypter id', ({ assert }) => {
+    const source = new AES256GCM({ id: 'source', key: SECRET })
+    const target = new AES256GCM({ id: 'target', key: SECRET })
+    const [, cipherText, iv, tag] = source.encrypt({ username: 'lanz' }).split('.')
+
+    assert.isNull(target.decrypt(`target.${cipherText}.${iv}.${tag}`))
+    assert.isNull(target.decrypt(`target.${cipherText.replace('v1:', '')}.${iv}.${tag}`))
   })
 
   test('return null when encrypted value is tampered', ({ assert }) => {

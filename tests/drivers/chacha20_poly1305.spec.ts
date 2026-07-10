@@ -105,6 +105,16 @@ test.group('ChaCha20-Poly1305', () => {
     )
   })
 
+  test('decrypt legacy encrypted value with purpose', ({ assert }) => {
+    const driver = new ChaCha20Poly1305({ id: 'lanz', key: SECRET })
+    const encrypted =
+      'lanz.t7TN6f5qxceXzsg9P1Acg4A9J9FELjvDbTuy5FJ6pw.DA0ODxAREhMUFRYX.cijVO_Fjij3U-ZAHEwhneA'
+
+    assert.deepEqual(driver.decrypt(encrypted, 'login'), { username: 'lanz' })
+    assert.isNull(driver.decrypt(encrypted))
+    assert.isNull(driver.decrypt(encrypted, 'register'))
+  })
+
   test('return null when value is in invalid format', ({ assert }) => {
     const driver = new ChaCha20Poly1305({ id: 'lanz', key: SECRET })
 
@@ -115,6 +125,22 @@ test.group('ChaCha20-Poly1305', () => {
     const driver = new ChaCha20Poly1305({ id: 'lanz', key: SECRET })
 
     assert.isNull(driver.decrypt('lanz.chacha20poly1305.foo.bar.baz'))
+  })
+
+  test('return null when an unsigned segment is appended', ({ assert }) => {
+    const driver = new ChaCha20Poly1305({ id: 'lanz', key: SECRET })
+    const encrypted = driver.encrypt({ username: 'lanz' })
+
+    assert.isNull(driver.decrypt(`${encrypted}.unsigned`))
+  })
+
+  test('bind encrypted values to their encrypter id', ({ assert }) => {
+    const source = new ChaCha20Poly1305({ id: 'source', key: SECRET })
+    const target = new ChaCha20Poly1305({ id: 'target', key: SECRET })
+    const [, cipherText, iv, tag] = source.encrypt({ username: 'lanz' }).split('.')
+
+    assert.isNull(target.decrypt(`target.${cipherText}.${iv}.${tag}`))
+    assert.isNull(target.decrypt(`target.${cipherText.replace('v1:', '')}.${iv}.${tag}`))
   })
 
   test('return null when hash is tampered', ({ assert }) => {
