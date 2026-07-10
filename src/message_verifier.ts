@@ -37,11 +37,19 @@ export class MessageVerifier {
       throw new errors.E_MISSING_ENCRYPTER_KEYS()
     }
 
-    this.#cryptoKeys = secrets.map((s) =>
-      createHash('sha256')
-        .update(typeof s === 'string' ? s : s.release())
-        .digest()
-    )
+    this.#cryptoKeys = secrets.map((secret) => {
+      const revealedSecret = typeof secret === 'string' ? secret : secret.release()
+
+      if (!revealedSecret) {
+        throw new errors.E_MISSING_ENCRYPTER_KEY()
+      }
+
+      if (revealedSecret.length < 16) {
+        throw new errors.E_INSECURE_ENCRYPTER_KEY()
+      }
+
+      return createHash('sha256').update(revealedSecret).digest()
+    })
   }
 
   /**
@@ -78,7 +86,12 @@ export class MessageVerifier {
     /**
      * Ensure value is in correct format
      */
-    const [encoded, hash] = payload.split(this.#separator)
+    const parts = payload.split(this.#separator)
+    if (parts.length !== 2) {
+      return null
+    }
+
+    const [encoded, hash] = parts
     if (!encoded || !hash) {
       return null
     }

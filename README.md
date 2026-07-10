@@ -217,7 +217,7 @@ When you need to ensure data integrity without hiding the content, use the `Mess
 ```typescript
 import { MessageVerifier } from '@boringnode/encryption/message_verifier'
 
-const verifier = new MessageVerifier(['your-secret-key'])
+const verifier = new MessageVerifier(['your-32-character-secret-key-here'])
 
 // Sign a value
 const signed = verifier.sign({ userId: 1 })

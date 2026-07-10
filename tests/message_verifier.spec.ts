@@ -19,6 +19,17 @@ test.group('MessageVerifier', () => {
     )
   })
 
+  test('fail when a signing secret is insecure', ({ assert }) => {
+    assert.throws(
+      () => new MessageVerifier(['']),
+      'Missing key. The key is required to encrypt values'
+    )
+    assert.throws(
+      () => new MessageVerifier(['hello-world']),
+      'The value of your key should be at least 16 characters long'
+    )
+  })
+
   test('disallow signing null and undefined values', ({ assert }) => {
     const messageVerifier = new MessageVerifier([SECRET])
 
@@ -62,6 +73,16 @@ test.group('MessageVerifier', () => {
     assert.deepEqual(unsigned, { username: 'virk' })
   })
 
+  test('unsign legacy value with purpose', ({ assert }) => {
+    const messageVerifier = new MessageVerifier([SECRET])
+    const signed =
+      'eyJtZXNzYWdlIjp7InVzZXJuYW1lIjoibGFueiJ9LCJwdXJwb3NlIjoibG9naW4ifQ.cCVoXFC8F2J3vnU6Gkrjl6N2_KtqdF6XH8k2Uf5I0vg'
+
+    assert.deepEqual(messageVerifier.unsign(signed, 'login'), { username: 'lanz' })
+    assert.isNull(messageVerifier.unsign(signed))
+    assert.isNull(messageVerifier.unsign(signed, 'register'))
+  })
+
   test('return null when unable to decode it', ({ assert }) => {
     const messageVerifier = new MessageVerifier([SECRET])
 
@@ -79,5 +100,12 @@ test.group('MessageVerifier', () => {
     const signed = messageVerifier.sign({ username: 'virk' })
 
     assert.isNull(messageVerifier.unsign(signed.slice(0, -2)))
+  })
+
+  test('return null when an unsigned segment is appended', ({ assert }) => {
+    const messageVerifier = new MessageVerifier([SECRET])
+    const signed = messageVerifier.sign({ username: 'virk' })
+
+    assert.isNull(messageVerifier.unsign(`${signed}.unsigned`))
   })
 })
