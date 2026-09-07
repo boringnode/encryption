@@ -31,7 +31,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@poppinss/utils": "^7.0.1"
+    "@poppinss/utils": "^7.1.0"
   },
   "devDependencies": {
     "@adonisjs/eslint-config": "^3.1.0",
@@ -41,12 +41,12 @@
     "@japa/expect-type": "^2.0.4",
     "@japa/runner": "^5.3.0",
     "@poppinss/ts-exec": "^1.4.4",
-    "@swc/core": "^1.15.43",
+    "@swc/core": "^1.16.2",
     "@types/node": "^22.20.0",
     "c8": "^11.0.0",
     "del-cli": "^7.0.0",
-    "eslint": "^10.6.0",
-    "prettier": "^3.9.4",
+    "eslint": "^10.10.0",
+    "prettier": "^3.9.6",
     "release-it": "^20.2.1",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3"
@@ -77,5 +77,5 @@
       "web": true
     }
   },
-  "packageManager": "yarn@4.17.0"
+  "packageManager": "yarn@4.18.0"
 }
